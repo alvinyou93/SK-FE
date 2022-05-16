@@ -1,6 +1,6 @@
-import { ClassComponent, A11yHidden } from "./components";
-import logo from "./logo.svg";
-import "./App.css";
+import { ClassComponent, A11yHidden } from './components';
+import logo from './logo.svg';
+import './App.css';
 
 export function COUNT_UP() {
   return (
