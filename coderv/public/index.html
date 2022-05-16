@@ -3,172 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <title>랜덤 카운트 업 - React 렌더링 뷰 (브라우저 환경)</title>
-    
-    <link href="//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css" rel="stylesheet" />
-    <link rel="shortcut icon" href="//iili.io/BI9OFI.png" />
-    <link href="./css/style.css" rel="stylesheet" />
 
-    <script src="//unpkg.com/react@17/umd/react.development.js" crossorigin></script>
-    <script src="//unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
-    <script src="//unpkg.com/babel-standalone/babel.min.js" crossorigin></script>
+    <title>React 앱</title>
+
+    <link
+      href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css"
+      rel="stylesheet"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/assets/react-atom.png" />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/assets/react-atom.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="React 앱 구성" />
+    <meta property="twitter:title" content="React 앱 구성" />
+    <meta
+      property="og:description"
+      content="React 앱 개발 환경 구성 방법을 실습합니다."
+    />
+    <meta
+      name="description"
+      content="React 앱 개발 환경 구성 방법을 실습합니다."
+    />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
   </head>
 
-  <body title="화면을 클릭하면 카운트 업이 다시 실행됩니다.">
-    
+  <body>
+    <noscript
+      >이 사이트를 이용하려면? 사용 중인 웹 브라우저에서 JavaScript를 활성화
+      해야 합니다.</noscript
+    >
+
+    <!--[if IE]>
+      <div class="notice notice--fixed-top">
+        <h1>서비스를 정상적으로 이용할 수 없습니다.</h1>
+        <p>
+          사용 중인 오래된 웹 브라우저를 사용하면 서비스를 정상적으로 이용할 수
+          없습니다. 안전하고 빠른 서비스 이용을 위해
+          <a
+            href="https://browsehappy.com/?locale=ko_KR"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            구형 웹 브라우저를 최신 브라우저로 업그레이드 하세요<span
+              style="font-style: italic"
+              >!</span
+            >
+          </a>
+        </p>
+      </div>
+    <![endif]-->
+
     <div id="root"></div>
 
-    <script type="text/babel">
-      // IconButton Component
-      // functional, class type
-      
-      /* { type: 'button' | 'submit' | 'reset', shape: 'cart' | 'hambuger' } */
+    <!-- Portal -->
+    <div id="modal-container">
+      <!-- render react component -->
+    </div>
 
-      function IconButton({ type='button', color="#E2999A", shape, label }) {
-
-        // derived state (props → 파생된 상태)
-        let d = '';
-
-        if (shape.includes('cart')) {
-          d = 'M19.0173 11.002H21H22V12.002V21.0011V22.0011H21H9H8V21.0011V12.002V11.002H9H10.9829C11.4261 9.27575 12.9926 8 14.8571 8H15.1431C17.0076 8 18.5741 9.27575 19.0173 11.002ZM16.8752 10.9997H13.125C13.4708 10.4021 14.117 10 14.8571 10H15.1431C15.8832 10 16.5294 10.4021 16.8752 10.9997ZM10 20.0011V13.002H20V20.0011H10Z';
-        } else {
-          d = 'M8 8H22V10H8V8ZM8 13H22V15H8V13ZM22 18H8V20H22V18Z';
-        }
-
-        return (
-          <button
-            type={type}
-            className="iconButton"
-            title={label}
-            aria-label={label}
-            onClick={(e) => location.reload()}
-          >
-            <svg width={30} height={30} viewBox="0 0 30 30" fill="currentColor">
-              <path fillRule="evenodd" clipRule="evenodd" d={d} fill={color} />
-            </svg>
-          </button>
-        )
-      }
-
-      ReactDOM.render(
-        <React.StrictMode>
-          <IconButton label="메뉴 닫기" shape="hambuger"></IconButton>
-        </React.StrictMode>,
-        document.getElementById('root')
-      )
-
-    </script>
-
-    <script>
-      // --------------------------------------------
-      // [모듈: 웹 브라우저 리프래시]
-      // --------------------------------------------
-      
-      // 로케이션 리로드 이벤트 리스너
-      const handleReload = () => window.location.reload();
-
-      // 문서 객체 클릭 이벤트에 이벤트 리스너 바인딩
-      // document.addEventListener('click', handleReload);
-    </script>
-
-    <script type="text/babel">
-      // --------------------------------------------
-      // [모듈: 랜덤 카운트 업]
-      // --------------------------------------------
-      
-      // 최솟값 MIN
-      const MIN = 42;
-
-      // 최댓값 MAX
-      const MAX = 99;
-
-      // 랜덤값을 반환하는 유틸리티 getRandomCount 함수
-      const getRandomCount = (min = MIN, max = MAX) => {
-        if (min > max) min = max;
-        return Math.floor((Math.random() * (max - min)) + min);
-      }
-      
-      // 목표 카운트 TARGET_COUNT 설정
-      const TARGET_COUNT = getRandomCount();
-
-      // 문서 타이틀 업데이트
-      document.title = `(${TARGET_COUNT}) ${document.title}`;
-
-      // count 상태 초깃값
-      let count = 0;
-
-      // 애니메이션 종료 상태
-      // let isComplete = false;
-
-      // DOM 컨테이너 요소 참조
-      const containerNode = document.getElementById('root');
-
-      // 애니메이션을 정지하는 스타일
-      // 조건: count 값이 TARGET_COUNT와 같거나 커지면 애니메이션 정지
-      const stopWiggle = {
-        animationName: 'none'
-      }
-
-      // React Component (Functional Type) → React Node (Element)
-      // Destructuring Assignment
-      // function RandomCountUp({ isComplete, count }) {
-      //   console.log(count);
-      //   // [Compile] JSX → Babel → React Element
-      //   return <output style={isComplete ? stopWiggle : null}>{count}</output>
-      // }
-
-      // React Component (Class Type) → React Node (Element)
-      class RandomCountUp extends React.Component {
-        constructor(props) {
-          super(props);
-        }
-
-        render() {
-          const { isComplete, count } = this.props;
-          return <output style={isComplete ? stopWiggle : null}>{count}</output>
-        }
-      }
-
-      // render 함수
-      function render(isComplete) {
-        ReactDOM.render(
-          <React.StrictMode>
-            <RandomCountUp isComplete={isComplete} count={count} />
-            <IconButton type="reset" children="초기화" />
-          </React.StrictMode>,
-          containerNode
-        )
-      }
-
-      // render();
-
-      // animate 함수
-      function animate() {
-        // 카운트 UP (count 업데이트)
-        count += 1;
-        // 카운트, 목표 카운트 비교
-        // 조건 변수 isComplete 업데이트
-        let isComplete = count >= TARGET_COUNT;
-        // 조건 변수의 값이 참/거짓
-        if (isComplete) {
-          // 타임 클린업
-          clearInterval(clearId);
-        } 
-
-        // 앱 렌더링
-        render(isComplete);
-      }
-
-      const FPS = 60/1000; // 60fps
-
-      // 타이머 설정
-      // requestAnimationFrame → reculsive call
-      // setTimeout → cleanup
-      // setInterval → cleanup
-      // const clearId = setInterval(animate, FPS);
-
-    </script>
+    <div id="loading-zone"></div>
   </body>
 </html>

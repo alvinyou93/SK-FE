@@ -1,25 +1,12 @@
-import logo from "./logo.svg";
-import "./App.css";
+import './App.css';
 //import { PrettyPrintCode } from "components";
-import React, { Fragment } from "react";
+import React, { Fragment } from 'react';
+import { ClassComponent, A11yHidden } from './components';
 
 export function COUNT_UP() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <header className="App-header"></header>
     </div>
   );
 }
@@ -28,18 +15,8 @@ export function BUTTON_COUNT() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <ClassComponent />
+        <A11yHidden>Hey</A11yHidden>
       </header>
     </div>
   );
@@ -49,7 +26,7 @@ export function JSX_IN_ACTION() {
   var error = null;
 
   error = {
-    message: "네트워크 오류 발생!",
+    message: '네트워크 오류 발생!',
     log() {
       console.log(this.message);
     },
@@ -95,12 +72,12 @@ export function JSX_IN_ACTION() {
 
   //null 병합 연산자 & 옵셔널 체이닝
   if (error === null || error === undefined) {
-    console.log("현재 앱에는 오류가 발생하지 않았습니다.");
+    console.log('현재 앱에는 오류가 발생하지 않았습니다.');
   }
-  error ?? console.log("현재 앱에는 오류가 발생하지 않았습니다.");
+  error ?? console.log('현재 앱에는 오류가 발생하지 않았습니다.');
 
   //리스트렌더링
-  const db = require("./api/db.json");
+  const db = require('./api/db.json');
   const {
     navigation: { items },
   } = db;
