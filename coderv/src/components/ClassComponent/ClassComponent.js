@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 
-import parent from "./ClassComponent.module.css";
-import React, { Component } from "react";
-import { NestedComponent } from "./NestedComponent";
+import { parent } from './ClassComponent.module.css';
+import React, { Component } from 'react';
+import { NestedComponent } from './NestedComponent';
 import {
   string,
   number,
@@ -12,11 +12,11 @@ import {
   elementType,
   shape,
   arrayOf,
-} from "prop-types";
+} from 'prop-types';
 
 export class ClassComponent extends Component {
   static defaultProps = {
-    as: "div",
+    as: 'div',
   };
 
   static propTypes = {
@@ -24,12 +24,12 @@ export class ClassComponent extends Component {
   };
 
   state = {
-    brand: "euid",
+    brand: 'euid',
   };
 
   changeBrand = (e) => {
     this.setState(({ brand }) => ({
-      brand: brand.includes("euid") ? "google" : "euid",
+      brand: brand.includes('euid') ? 'google' : 'euid',
     }));
   };
 

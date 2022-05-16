@@ -1,11 +1,10 @@
 .parent {
   padding: 40px;
-  background: #2c3f57;
+  text-align: center;
 }
 
 .parent span {
   color: #fff;
-  margin-right: 40px;
   text-transform: uppercase;
 }
 
