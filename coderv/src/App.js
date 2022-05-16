@@ -1,12 +1,64 @@
 import './App.css';
 //import { PrettyPrintCode } from "components";
-import React, { Fragment } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ClassComponent, A11yHidden } from './components';
 
-export function COUNT_UP() {
+const initialDocumentTitle = document.title;
+const getRandom = (n) => Math.random() * n;
+
+function getRandomMinMax(min = 0, max = 100) {
+  if (min > max) {
+    throw new Error('min 값이 max 보다 큽니다.');
+  }
+  return Math.floor(getRandom(max - min) + min);
+}
+
+function RandomCountUp({ min = 0, max = 100, step = 1, fps = 10 }) {
+  const [targetCount] = useState(() => getRandomMinMax(min, max));
+
+  useEffect(() => {
+    document.title = `(${targetCount}) ${initialDocumentTitle}`;
+  }, [targetCount]);
+
+  let [isComplete, setIsComplete] = useState(false);
+  let [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const timeoutID = setTimeout(() => {
+      if (count >= targetCount) {
+        setIsComplete(true);
+        setCount(targetCount);
+      } else {
+        setCount(count + step);
+      }
+    }, fps / 1000);
+
+    return () => clearTimeout(timeoutID);
+  }, [count]);
+
   return (
-    <div className="App">
-      <header className="App-header"></header>
+    <div className="randomCountUp">
+      <output style={isComplete ? { animationName: 'none' } : null}>
+        {count}
+      </output>
+    </div>
+  );
+}
+
+export function COUNT_UP() {
+  const [reload, setReload] = React.useState(0);
+
+  return (
+    <div className="app">
+      <RandomCountUp key={reload} min={45} max={92} step={3} />
+      <button
+        type="button"
+        className="reloadButton"
+        onClick={() => setReload(reload + 1)}
+        title="다시 실행"
+      >
+        RELOAD
+      </button>
     </div>
   );
 }

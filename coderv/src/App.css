@@ -37,7 +37,7 @@
   }
 }
 .container {
-  font: 300 1rem/1.5 "Spoqa Hans Sans", sans-serif;
+  font: 300 1rem/1.5 'Spoqa Hans Sans', sans-serif;
 }
 .headline {
   --font-size: 2.4rem;
@@ -70,4 +70,58 @@
   font-size: 11px;
   background: #111;
   color: #fff;
+}
+
+.randomCountUp {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-weight: 100;
+  font-size: 50px;
+  line-height: 1;
+  background: #000;
+  color: #fff;
+}
+
+.randomCountUp .output {
+  font-size: 50px;
+  user-select: none;
+  cursor: inherit;
+  animation: wiggle steps(3) 3000ms infinite alternate;
+}
+
+@keyframes wiggle {
+  0% {
+    opacity: 1;
+  }
+  33.3333% {
+    opacity: 0.4;
+  }
+  66.6666% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.app .reloadButton {
+  cursor: pointer;
+  position: absolute;
+  top: 500px;
+  right: 710px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 8px 16px;
+  letter-spacing: 0.1em;
+  font-weight: 300;
+  background: transparent;
+  color: #fff;
+  transition: all 0.2s ease-in-out;
+}
+
+.app .reloadButton :hover {
+  background: #fff;
+  color: #000;
 }
