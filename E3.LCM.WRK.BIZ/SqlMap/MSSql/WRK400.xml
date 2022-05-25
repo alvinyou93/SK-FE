@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.LCM.WRK.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WRK400_SELECT_TOTAL_CNT">
+			<![CDATA[			
+			WITH STEP_INFO AS (
+				SELECT PLANT_ID
+						,TA_ID
+						,FACILITY_KND
+						,LEN(CONCAT(STEP1_CD, STEP2_CD, STEP3_CD, STEP4_CD, STEP5_CD, STEP6_CD, STEP7_CD, STEP8_CD, STEP9_CD)) / 5  AS STEP_COUNT
+					FROM WK_FACILITY_STEP FA
+				   WHERE 1=1
+				     AND EXISTS (SELECT 1 FROM E3_CODE WHERE PARENT_ID = 'FACT_KND' AND CODE_ID = FA.FACILITY_KND AND USE_YN = 'Y')
+			),
+			FACILITY_INFO AS (
+				SELECT  PLANT_ID  
+ 						,TA_ID
+						,FACILITY_KND
+						,PROCESS_CD
+						,FACILITY_NO
+						,COUNT(*) CNT
+					FROM WK_SIGN_SHEET
+				GROUP BY PLANT_ID, TA_ID, FACILITY_KND, PROCESS_CD, FACILITY_NO
+			)
+			SELECT  SA1.CNT AS TOTAL_CNT
+				   ,ISNULL(ING_RATE, 0) AS ING_RATE
+	               ,ISNULL(SA2.CNT, 0) AS COMP_RATE
+				FROM (
+				SELECT SUM(TOTAL_CNT) TOTAL_CNT
+						,ROUND((CONVERT(float, SUM(ING_CNT)) / SUM(TOTAL_CNT) * 100),2) AS ING_RATE
+					FROM (
+						SELECT T1.PLANT_ID
+								,T1.TA_ID
+								,T1.FACILITY_KND
+								,T1.CNT * STEP_INFO.STEP_COUNT AS TOTAL_CNT
+								,T3.CNT AS ING_CNT
+							FROM (
+								SELECT PLANT_ID  
+  										,TA_ID
+										,FACILITY_KND
+										,COUNT(*) CNT
+									FROM WK_FACILITY_INFO FA
+								   WHERE 1=1
+					                 AND EXISTS (SELECT 1 FROM E3_CODE WHERE PARENT_ID = 'FACT_KND' AND CODE_ID = FA.FACILITY_KND AND USE_YN = 'Y')
+			]]>								
+							<isNotNull property="PROCESS_CD">
+								<isNotEmpty property="PROCESS_CD">
+									AND PROCESS_CD = #PROCESS_CD#
+								</isNotEmpty>
+							</isNotNull>
+								GROUP BY PLANT_ID, TA_ID, FACILITY_KND) T1
+								LEFT JOIN STEP_INFO
+								ON T1.PLANT_ID = STEP_INFO.PLANT_ID AND T1.TA_ID = STEP_INFO.TA_ID AND T1.FACILITY_KND = STEP_INFO.FACILITY_KND
+								LEFT OUTER JOIN (SELECT PLANT_ID  
+													,TA_ID
+													,FACILITY_KND
+													,COUNT(*) CNT
+												FROM WK_SIGN_SHEET
+											   WHERE 1=1
+										 <isNotNull property="PROCESS_CD">
+											 <isNotEmpty property="PROCESS_CD">
+												 AND PROCESS_CD = #PROCESS_CD#
+											 </isNotEmpty>
+										 </isNotNull>
+											GROUP BY PLANT_ID, TA_ID, FACILITY_KND) T3
+								ON T1.PLANT_ID = T3.PLANT_ID AND T1.TA_ID = T3.TA_ID AND T1.FACILITY_KND = T3.FACILITY_KND
+						WHERE 1=1
+				  <isNotNull property="PLANT_ID">
+					  <isNotEmpty property="PLANT_ID">
+						  AND T1.PLANT_ID = #PLANT_ID#
+					</isNotEmpty>
+				  </isNotNull>
+				  <isNotNull property="TA_ID"> 
+					  <isNotEmpty property="TA_ID">
+						  AND T1.TA_ID = #TA_ID#
+					  </isNotEmpty>
+				  </isNotNull>
+					) TA1
+				) TAB1,
+				(
+					SELECT COUNT(*) CNT
+						FROM WK_FACILITY_INFO FA
+					 WHERE 1=1
+					   AND EXISTS (SELECT 1 FROM E3_CODE WHERE PARENT_ID = 'FACT_KND' AND CODE_ID = FA.FACILITY_KND AND USE_YN = 'Y')
+				  <isNotNull property="PLANT_ID">
+					  <isNotEmpty property="PLANT_ID">
+						  AND PLANT_ID = #PLANT_ID#
+					</isNotEmpty>
+				  </isNotNull>
+				  <isNotNull property="TA_ID">
+					  <isNotEmpty property="TA_ID">
+						  AND TA_ID = #TA_ID#
+					  </isNotEmpty>
+				  </isNotNull>
+ 				  <isNotNull property="PROCESS_CD">
+ 				  	  <isNotEmpty property="PROCESS_CD">
+					  	  AND PROCESS_CD = #PROCESS_CD#
+					  </isNotEmpty>
+				  </isNotNull>
+			) SA1,
+			(
+				SELECT SUM(CNT) CNT
+				  FROM (
+						SELECT CASE WHEN S1.STEP_COUNT = S2.CNT THEN 1 ELSE 0 END AS CNT
+						  FROM STEP_INFO S1 
+				          INNER JOIN FACILITY_INFO S2 ON S1.PLANT_ID = S2.PLANT_ID AND S1.TA_ID = S2.TA_ID AND S1.FACILITY_KND = S2.FACILITY_KND
+						WHERE 1=1
+					   <isNotNull property="PLANT_ID">
+						   <isNotEmpty property="PLANT_ID">
+						 	  AND S1.PLANT_ID = #PLANT_ID#
+						</isNotEmpty>
+					    </isNotNull>
+					    <isNotNull property="TA_ID">
+						   <isNotEmpty property="TA_ID">
+							  AND S1.TA_ID = #TA_ID#
+						   </isNotEmpty>
+					    </isNotNull>						
+					    ) A
+			) SA2
+		</select>
+
+		<select id="WRK400_GET_FACILITY_KND">
+			<![CDATA[
+			WITH STEP_INFO AS (
+				SELECT PLANT_ID
+						,TA_ID
+						,FACILITY_KND
+						,LEN(CONCAT(STEP1_CD, STEP2_CD, STEP3_CD, STEP4_CD, STEP5_CD, STEP6_CD, STEP7_CD, STEP8_CD, STEP9_CD)) / 5  AS STEP_COUNT
+					FROM WK_FACILITY_STEP
+			),
+			FACILITY_INFO AS (
+				SELECT  PLANT_ID  
+ 					  ,TA_ID
+					  ,FACILITY_KND
+					  ,PROCESS_CD
+					  ,FACILITY_NO
+					  ,COUNT(*) CNT
+				 FROM WK_SIGN_SHEET
+			 GROUP BY PLANT_ID, TA_ID, FACILITY_KND, PROCESS_CD, FACILITY_NO
+			)			
+			SELECT CD.CODE_ID AS FACILITY_KND
+				  ,CD.CODE_NAME AS FACILITY_NM
+				  ,FACILITY_CNT TOTAL_CNT 
+				  ,ISNULL(ROUND((CONVERT(float, ING_CNT) / TOTAL_CNT * 100),2),0) AS ING_RATE
+	              ,ISNULL(COM_CNT,0) AS COMP_RATE
+			  FROM E3_CODE CD
+				   LEFT OUTER JOIN (
+									SELECT T1.PLANT_ID
+										  ,T1.TA_ID
+										  ,T1.FACILITY_KND
+								          ,T1.CNT AS FACILITY_CNT										  
+										  ,T1.CNT * T2.STEP_COUNT AS TOTAL_CNT
+										  ,T3.CNT AS ING_CNT
+										  ,T4.CNT AS COM_CNT										  
+									  FROM (
+											SELECT PLANT_ID  
+  												  ,TA_ID
+												  ,FACILITY_KND
+												  ,COUNT(*) CNT
+											  FROM WK_FACILITY_INFO FA
+											 WHERE 1=1
+											   AND EXISTS (SELECT 1 FROM E3_CODE WHERE PARENT_ID = 'FACT_KND' AND CODE_ID = FA.FACILITY_KND AND USE_YN = 'Y')
+			]]>
+				 					    <isNotNull property="PROCESS_CD">
+											<isNotEmpty property="PROCESS_CD">
+												AND PROCESS_CD = #PROCESS_CD#
+											</isNotEmpty>
+										</isNotNull>
+											GROUP BY PLANT_ID, TA_ID, FACILITY_KND) T1
+											LEFT JOIN (SELECT PLANT_ID
+														  ,TA_ID
+														  ,FACILITY_KND
+														  ,LEN(CONCAT(STEP1_CD, STEP2_CD, STEP3_CD, STEP4_CD, STEP5_CD, STEP6_CD, STEP7_CD, STEP8_CD, STEP9_CD)) / 5  AS STEP_COUNT
+													  FROM WK_FACILITY_STEP) T2
+											ON T1.PLANT_ID = T2.PLANT_ID AND T1.TA_ID = T2.TA_ID AND T1.FACILITY_KND = T2.FACILITY_KND
+											LEFT OUTER JOIN (SELECT PLANT_ID  
+															  ,TA_ID
+															  ,FACILITY_KND
+															  ,COUNT(*) CNT
+														  FROM WK_SIGN_SHEET
+														 WHERE 1=1
+													<isNotNull property="PROCESS_CD">
+														<isNotEmpty property="PROCESS_CD">
+															AND PROCESS_CD = #PROCESS_CD#
+														</isNotEmpty>
+													</isNotNull>
+														GROUP BY PLANT_ID, TA_ID, FACILITY_KND) T3
+													ON T1.PLANT_ID = T3.PLANT_ID AND T1.TA_ID = T3.TA_ID AND T1.FACILITY_KND = T3.FACILITY_KND
+											LEFT OUTER JOIN (SELECT SA1.PLANT_ID
+																   ,SA1.TA_ID
+																   ,SA1.FACILITY_KND
+																   ,SUM(SA1.CNT) CNT
+												 			   FROM (SELECT  S1.PLANT_ID
+																			,S1.TA_ID
+																			,S1.FACILITY_KND
+																			,CASE WHEN S1.STEP_COUNT = S2.CNT THEN 1 ELSE 0 END AS CNT
+																	   FROM STEP_INFO S1 
+																	  INNER JOIN FACILITY_INFO S2 ON S1.PLANT_ID = S2.PLANT_ID AND S1.TA_ID = S2.TA_ID AND S1.FACILITY_KND = S2.FACILITY_KND) SA1
+															  GROUP BY SA1.PLANT_ID
+																	  ,SA1.TA_ID
+																	  ,SA1.FACILITY_KND) T4
+											ON T1.PLANT_ID = T4.PLANT_ID AND T1.TA_ID = T4.TA_ID AND T1.FACILITY_KND = T4.FACILITY_KND											
+										WHERE 1=1
+								<isNotNull property="TA_ID">
+									<isNotEmpty property="TA_ID">
+										AND T1.TA_ID = #TA_ID#
+									</isNotEmpty>
+								</isNotNull>
+			) TA1
+			ON ISNULL(CD.PLANT_ID, CD.PLANT_ID) = TA1.PLANT_ID AND CD.CODE_ID = TA1.FACILITY_KND AND CD.USE_YN = 'Y'
+			WHERE CD.PARENT_ID = 'FACT_KND'
+			  AND CD.USE_YN = 'Y'
+			<isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					AND CD.PLANT_ID = #PLANT_ID#
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="FACILITY_KND">
+				<isNotEmpty property="FACILITY_KND">
+					AND CD.CODE_ID = #FACILITY_KND#
+				</isNotEmpty>
+			</isNotNull>
+
+			ORDER BY CD.DISPLAY_SEQ
+		</select>
+
+		<select id="WRK400_GET_JOB_LIST">
+			<![CDATA[
+			SELECT T1.PLANT_ID
+				  ,T1.TA_ID
+				  ,T1.FACILITY_KND
+				  ,CD1.CODE_NAME AS FACILITY_NM
+				  ,T1.JOB_ID
+				  ,CD2.CODE_NAME AS JOB_NM
+				  ,ISNULL(T2.CNT, 0) AS ING_CNT
+			  FROM (
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP1_CD AS JOB_ID, '1' AS ORD_NUM FROM WK_FACILITY_STEP 
+					UNION ALL
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP2_CD AS JOB_ID, '2' AS ORD_NUM FROM WK_FACILITY_STEP 
+					UNION ALL
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP3_CD AS JOB_ID, '3' AS ORD_NUM FROM WK_FACILITY_STEP 
+					UNION ALL
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP4_CD AS JOB_ID, '4' AS ORD_NUM FROM WK_FACILITY_STEP 
+					UNION ALL
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP5_CD AS JOB_ID, '5' AS ORD_NUM FROM WK_FACILITY_STEP 
+					UNION ALL
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP6_CD AS JOB_ID, '6' AS ORD_NUM FROM WK_FACILITY_STEP 
+					UNION ALL
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP7_CD AS JOB_ID, '7' AS ORD_NUM FROM WK_FACILITY_STEP 
+					UNION ALL
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP8_CD AS JOB_ID, '8' AS ORD_NUM FROM WK_FACILITY_STEP 
+					UNION ALL
+					SELECT PLANT_ID, TA_ID, FACILITY_KND, STEP9_CD AS JOB_ID, '9' AS ORD_NUM FROM WK_FACILITY_STEP
+					) T1 
+					LEFT JOIN E3_CODE CD1 ON T1.PLANT_ID = CD1.PLANT_ID AND T1.FACILITY_KND = CD1.CODE_ID AND CD1.PARENT_ID = 'FACT_KND' AND CD1.USE_YN = 'Y'
+					LEFT JOIN E3_CODE CD2 ON T1.PLANT_ID = CD2.PLANT_ID AND T1.JOB_ID = CD2.CODE_ID AND CD2.PARENT_ID = 'JOB_KND' AND CD2.USE_YN = 'Y'
+					LEFT OUTER JOIN (  SELECT PLANT_ID  
+											,TA_ID
+											,FACILITY_KND
+											,STEP_CD
+											,COUNT(*) CNT
+										FROM WK_SIGN_SHEET
+									   WHERE 1=1
+			]]>					<isNotNull property="PROCESS_CD">
+									<isNotEmpty property="PROCESS_CD">
+										AND PROCESS_CD = #PROCESS_CD#
+									</isNotEmpty>
+								</isNotNull>
+									GROUP BY PLANT_ID, TA_ID, FACILITY_KND, STEP_CD) T2 ON T1.PLANT_ID = T2.PLANT_ID AND T1.TA_ID = T2.TA_ID AND T1.FACILITY_KND = T2.FACILITY_KND AND T1.JOB_ID = T2.STEP_CD
+			WHERE (T1.JOB_ID IS NOT NULL AND T1.JOB_ID != '')
+		<isNotNull property="PLANT_ID">
+			<isNotEmpty property="PLANT_ID">
+				AND T1.PLANT_ID = #PLANT_ID#
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="TA_ID">
+			<isNotEmpty property="TA_ID">
+				AND T1.TA_ID = #TA_ID#
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="FACILITY_KND">
+			<isNotEmpty property="FACILITY_KND">
+				AND T1.FACILITY_KND = #FACILITY_KND#
+			</isNotEmpty>
+		</isNotNull>
+			ORDER BY T1.PLANT_ID, T1.TA_ID, CD1.DISPLAY_SEQ, T1.ORD_NUM
+		</select>		
+
+		<insert id="WRK400_INSERT_SIGN_SHEET">
+		<![CDATA[
+		INSERT INTO WK_SIGN_SHEET
+		(
+			  PLANT_ID    /*사업장ID*/
+			, TA_ID    /*TA ID*/
+			, FACILITY_KND    /*설비종류*/
+			, PROCESS_CD    /*공정*/
+			, FACILITY_NO    /*설비번호*/
+			, STEP_CD    /*단계*/
+			, WK_STATUS    /*작업상태*/
+			, MNGR_ID    /*담당자ID*/
+			, COMP_DT    /*완료일자*/
+			, RMK    /*비고*/
+			, REG_ID    /*등록자ID*/
+			, REG_DATE    /*등록일자*/
+		) 
+		VALUES 
+		(
+			  #PLANT_ID#    /*사업장ID*/
+			, #TA_ID#    /*TA ID*/
+			, #FACILITY_KND#    /*설비종류*/
+			, #PROCESS_CD#    /*공정*/
+			, #FACILITY_NO#    /*설비번호*/
+			, #STEP_CD#    /*단계*/
+			, #WK_STATUS#    /*작업상태*/
+			, #LOGINID#    /*담당자ID*/
+			, CONVERT(VARCHAR(8),GETDATE(),112)    /*완료일자*/
+			, #RMK#    /*비고*/
+            , #LOGINID#     /*등록자ID*/
+            , GETDATE()     /*등록일자*/
+		)   
+        ]]>
+		</insert>		
+
+      <delete id="WRK400_DELETE_FACILITY_INFO">
+        <![CDATA[
+                DELETE FROM WK_FACILITY_INFO
+				WHERE 1 = 1
+				AND PLANT_ID = #PLANT_ID#
+				AND TA_ID = #TA_ID#
+				AND FACILITY_KND = #FACILITY_KND#    
+				AND PROCESS_CD = #PROCESS_CD#    
+				AND FACILITY_NO = #FACILITY_NO#    
+            ]]>        
+      </delete>
+
+		<delete id="WRK400_DELETE_SIGN_SHEET">
+			<![CDATA[
+                DELETE FROM WK_SIGN_SHEET
+				WHERE 1 = 1
+				AND PLANT_ID = #PLANT_ID#
+				AND TA_ID = #TA_ID#
+				AND FACILITY_KND = #FACILITY_KND#    
+				AND PROCESS_CD = #PROCESS_CD#    
+				AND FACILITY_NO = #FACILITY_NO#    
+            ]]>
+		</delete>
+
+		<delete id="WRK400_DELETE_SIGN_SHEET_STEP">
+			<![CDATA[
+                DELETE FROM WK_SIGN_SHEET
+				WHERE 1 = 1
+				AND PLANT_ID = #PLANT_ID#
+				AND TA_ID = #TA_ID#
+				AND FACILITY_KND = #FACILITY_KND#    
+				AND PROCESS_CD = #PROCESS_CD#    
+				AND FACILITY_NO = #FACILITY_NO# 
+				AND STEP_CD = #STEP_CD#
+            ]]>
+		</delete>
+	</statements>
+</sqlMap>

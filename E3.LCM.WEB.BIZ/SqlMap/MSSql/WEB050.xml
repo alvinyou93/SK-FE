@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WEB050_EXAM_COUNT">
+			<![CDATA[
+			SELECT 
+				COUNT(1) CNT
+			FROM SE_TA_EXAM A			
+			WHERE 1 = 1		
+			AND PLANT_ID =#PLANT_ID#
+			AND EXAM_ID = #EXAM_ID#
+			]]>
+		</select>
+
+		<select id="WEB050_SELECT">
+			<![CDATA[
+			SELECT
+				  A.PLANT_ID    /*사업장*/
+				, B.CODE_NAME PLANT_NM
+				, A.EXAM_ID    /*시험문제ID*/
+				, A.EXAM_TYPE    /*문제 유형(A,B)*/
+				, C.CODE_NAME EXAM_TYPE_NM
+				, A.EXAM_SENTENCE    /*문제*/
+				, A.ANSWER_1    /*선택지1*/
+				, A.ANSWER_2    /*선택지2*/
+				, A.ANSWER_3    /*선택지3*/
+				, A.ANSWER_4    /*선택지4*/
+				, A.RIGHT_ANSWER    /*정답*/
+				, A.USE_YN    /*사용여부*/
+				, A.ORDR    /*문제순번*/
+				, A.REG_ID    /*등록자ID*/
+				, A.REG_DT    /*등록일시*/
+				, A.UPT_ID    /*변경자ID*/
+			 FROM SE_TA_EXAM A /*시험문제관리*/
+			 LEFT OUTER JOIN E3_CODE B ON A.PLANT_ID = B.CODE_ID AND B.PARENT_ID = 'PLANTID'
+			 LEFT OUTER JOIN E3_CODE C ON A.EXAM_TYPE = C.CODE_ID AND C.PARENT_ID = 'EXAM_TYPE'
+			 WHERE 1 = 1
+
+			]]>
+			<isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					<![CDATA[
+				AND A.PLANT_ID = #PLANT_ID#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="EXAM_SENTENCE">
+				<isNotEmpty property="EXAM_SENTENCE">
+					<![CDATA[
+				AND A.EXAM_SENTENCE LIKE '%' +  #EXAM_SENTENCE# + '%'
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="USE_YN">
+				<isNotEmpty property="USE_YN">
+					<![CDATA[
+				AND A.USE_YN = #USE_YN#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			ORDER BY A.PLANT_ID, A.ORDR
+		</select>
+		
+		<insert id="WEB050_INSERT">
+        <![CDATA[
+			INSERT INTO SE_TA_EXAM
+				(PLANT_ID    /*사업장*/
+				, EXAM_ID    /*시험문제ID*/
+				, EXAM_TYPE    /*문제 유형(A,B)*/
+				, EXAM_SENTENCE    /*문제*/
+				, ANSWER_1    /*선택지1*/
+				, ANSWER_2    /*선택지2*/
+				, ANSWER_3    /*선택지3*/
+				, ANSWER_4    /*선택지4*/
+				, RIGHT_ANSWER    /*정답*/
+				, USE_YN    /*사용여부*/
+				, ORDR    /*문제순번*/
+				, REG_ID    /*등록자ID*/
+				, REG_DT    /*등록일시*/
+				, UPT_ID    /*변경자ID*/
+			) VALUES 
+			(
+				  #PLANT_ID#    /*사업장*/
+				, (SELECT ISNULL((SELECT MAX(convert (int, EXAM_ID)) + 1 FROM SE_TA_EXAM), 1))   /*시험문제ID*/
+				, #EXAM_TYPE#    /*문제 유형(A,B)*/
+				, #EXAM_SENTENCE#    /*문제*/
+				, #ANSWER_1#    /*선택지1*/
+				, #ANSWER_2#    /*선택지2*/
+				, #ANSWER_3#    /*선택지3*/
+				, #ANSWER_4#    /*선택지4*/
+				, CONVERT(INT, CONVERT(FLOAT,  #RIGHT_ANSWER#))    /*정답*/
+				, ISNULL(#USE_YN#, 'Y')    /*사용여부*/
+				, ISNULL(#ORDR#, 0)    /*문제순번*/
+				, #REG_ID#    /*등록자ID*/
+				, #REG_DT#    /*등록일시*/
+				, #UPT_ID#    /*변경자ID*/
+			)
+            ]]>
+      </insert>
+
+      <update id="WEB050_UPDATE">
+        <![CDATA[
+			 UPDATE SE_TA_EXAM
+			 SET
+				 EXAM_TYPE = #EXAM_TYPE#    /*문제 유형(A,B)*/
+				,EXAM_SENTENCE = #EXAM_SENTENCE#    /*문제*/
+				,ANSWER_1 = #ANSWER_1#    /*선택지1*/
+				,ANSWER_2 = #ANSWER_2#    /*선택지2*/
+				,ANSWER_3 = #ANSWER_3#    /*선택지3*/
+				,ANSWER_4 = #ANSWER_4#    /*선택지4*/
+				,RIGHT_ANSWER = CONVERT(INT, CONVERT(FLOAT,  #RIGHT_ANSWER# ))   /*정답*/
+				,USE_YN = #USE_YN#    /*사용여부*/
+				,ORDR = ISNULL(#ORDR#, 0)    /*문제순번*/
+				,UPT_ID = #LoginedUserID#    /*변경자ID*/
+				,UPT_DT = GETDATE()     /*변경일시*/  
+			 WHERE 1 = 1
+			 AND PLANT_ID = #PLANT_ID#
+			 AND EXAM_ID = #EXAM_ID#
+            ]]>        
+      </update>
+
+		<delete id="WEB050_DELETE">
+        <![CDATA[
+                DELETE FROM SE_TA_EXAM
+                WHERE 1 = 1
+				AND EXAM_ID = #EXAM_ID#
+            ]]>        
+		</delete>
+	</statements>
+</sqlMap>

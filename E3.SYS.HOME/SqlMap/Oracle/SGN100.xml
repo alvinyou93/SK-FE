@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.SYS.HOME" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+  <statements>
+    <select id="SGN100_SELECT">
+      <![CDATA[
+         SELECT M.MENU_ID
+	        , M.MENU_NAME 
+	        , M.LVL AS "LEVEL"
+	        , M.PARENT_ID 
+	        , P.PROGRAM_PATH 
+          , P.PROGRAM_ID
+        FROM E3_MENU M
+	        LEFT JOIN E3_PGM P
+		        ON M.PROGRAM_ID = P.PROGRAM_ID 
+        WHERE M.MENU_ID IN (SELECT MENU_ID 
+					        FROM E3_AUTH_MENU_MAPPING AM
+					        WHERE AM.AUTHORITY_ID IN (SELECT UA.AUTHORITY_ID 
+											          FROM E3_USER U
+											  	        INNER JOIN E3_USER_AUTH_MAPPING UA
+											   		        ON U.USER_ID = UA.USER_ID 
+											          WHERE U.USER_ID = #USER_ID#
+											         )
+					        GROUP BY MENU_ID
+        )
+        AND M.USE_YN = 'Y'
+        ORDER BY M.LVL, M.ORD
+        ]]>
+    </select>
+    <select id="SGN100_LOGIN">
+      <![CDATA[
+            SELECT user_id, user_name, user_password, user_email
+            FROM e3_user WHERE use_yn='Y' AND user_id = #username#
+        ]]>
+    </select>
+    <select id="SGN100_CHANGEPASS">
+      <![CDATA[
+          UPDATE e3_user SET 
+            user_password = #NEW_PASS#,
+            password_change_yn = 'Y',
+            mod_id = #USER_ID#,
+            mod_date = TO_DATE(#Now#, 'YYYY-MM-DD HH24:MI:SS'),
+            password_change_date = TO_DATE(#Now#, 'YYYY-MM-DD HH24:MI:SS')
+          WHERE user_id=#USER_ID#
+        ]]>
+    </select>
+    <select id="SGN100_PASS_HISTORY_SELECT">
+      <![CDATA[
+          SELECT OLD_PASSWORD FROM 
+          (SELECT ROWNUM NUM, OLD_PASSWORD FROM E3_USER_PASSWORD_HIS WHERE USER_ID=#USER_ID# ORDER BY REG_DATE DESC) A
+          WHERE A.NUM <= 3 
+        ]]>
+    </select>
+    <insert id="SGN100_PASS_HISTORY_INSERT">
+      <![CDATA[
+          INSERT INTO E3_USER_PASSWORD_HIS (USER_ID, OLD_PASSWORD)
+          SELECT USER_ID, USER_PASSWORD FROM E3_USER WHERE USER_ID=#USER_ID#
+        ]]>
+    </insert>
+    <select id="SGN100_GETFAVORIT">
+      <![CDATA[
+          SELECT F.PLANT_ID, F.USER_ID, F.MENU_ID, M.MENU_NAME, M.PROGRAM_ID, M.PROGRAM_NAME, M.PROGRAM_PATH, M.PROGRAM_TYPE
+          FROM e3_menu_favorite F INNER JOIN
+          (
+	          SELECT M.MENU_ID, M.MENU_NAME, M.PROGRAM_ID, P.PROGRAM_NAME, P.PROGRAM_PATH, P.PROGRAM_TYPE, P.PLANT_ID
+	          FROM e3_menu M INNER JOIN e3_pgm P
+		          ON (M.PROGRAM_ID=P.PROGRAM_ID AND M.USE_YN='Y' AND P.USE_YN='Y')
+          ) M ON (F.MENU_ID=M.MENU_ID AND USE_YN='Y' AND F.USER_ID=#USER_ID#)
+          ORDER BY F.MENU_ID ASC
+        ]]>
+    </select>
+    <select id="SGN100_FAVORITSELECT">
+      <![CDATA[
+          SELECT F.PLANT_ID, F.USER_ID, F.MENU_ID, M.MENU_NAME, M.PROGRAM_ID, M.PROGRAM_NAME, M.PROGRAM_PATH, M.PROGRAM_TYPE
+          FROM e3_menu_favorite F INNER JOIN
+          (
+	          SELECT M.MENU_ID, M.MENU_NAME, M.PROGRAM_ID, P.PROGRAM_NAME, P.PROGRAM_PATH, P.PROGRAM_TYPE, P.PLANT_ID
+	          FROM e3_menu M INNER JOIN e3_pgm P
+		          ON (M.PROGRAM_ID=P.PROGRAM_ID AND M.USE_YN='Y' AND P.USE_YN='Y')
+          ) M ON (F.MENU_ID=M.MENU_ID AND USE_YN='Y' AND F.USER_ID=#USER_ID#)
+          ORDER BY F.MENU_ID ASC
+        ]]>
+    </select>
+    <insert id="SGN100_FAVORITINSERT">
+      <![CDATA[
+          INSERT INTO e3_menu_favorite (PLANT_ID, USER_ID, MENU_ID, USE_YN, REG_ID, REG_DATE)
+          VALUES (#PLANT_ID#, #USER_ID#, #MENU_ID#, 'Y', #LoginedUserID#, TO_DATE(#Now#, 'YYYY-MM-DD HH24:MI:SS'))
+        ]]>
+    </insert>
+    <delete id="SGN100_FAVORITDELETE">
+      <![CDATA[
+          DELETE FROM e3_menu_favorite WHERE MENU_ID=#MENU_ID# AND USER_ID=#USER_ID#
+        ]]>
+    </delete>
+    <select id="SGN100_SETFAVORIT">
+      <![CDATA[
+            IF NOT EXISTS (SELECT * FROM e3_menu_favorite WHERE MENU_ID=#MENU_ID# AND USER_ID=#USER_ID#)
+            BEGIN
+                INSERT INTO e3_menu_favorite (PLANT_ID, USER_ID, MENU_ID, USE_YN, REG_ID, REG_DATE)
+                VALUES (#PLANT_ID#, #USER_ID#, #MENU_ID#, 'Y', #USER_ID#, TO_DATE(#Now#, 'YYYY-MM-DD HH24:MI:SS'));
+            END
+            ELSE
+            BEGIN
+                DELETE FROM e3_menu_favorite WHERE MENU_ID=#MENU_ID# AND USER_ID=#USER_ID#;
+            END 
+            
+            SELECT F.PLANT_ID, F.USER_ID, F.MENU_ID, M.MENU_NAME, M.PROGRAM_ID, M.PROGRAM_NAME, M.PROGRAM_PATH, M.PROGRAM_TYPE
+            FROM e3_menu_favorite F INNER JOIN
+            (
+	            SELECT M.MENU_ID, M.MENU_NAME, M.PROGRAM_ID, P.PROGRAM_NAME, P.PROGRAM_PATH, P.PROGRAM_TYPE, P.PLANT_ID
+	            FROM e3_menu M INNER JOIN e3_pgm P
+		            ON (M.PROGRAM_ID=P.PROGRAM_ID AND M.USE_YN='Y' AND P.USE_YN='Y')
+            ) M ON (F.MENU_ID=M.MENU_ID AND USE_YN='Y' AND F.USER_ID=#USER_ID#)
+            ORDER BY F.MENU_ID ASC;
+        ]]>
+    </select>
+    <select id="SGN100_SELECTUSERINFO">
+      <![CDATA[
+          SELECT USER_ID, USER_NAME,USER_EMAIL, LOGIN_ID, USE_YN, REG_ID, REG_DATE, MOD_ID, MOD_DATE, EXPIRY_DATE, PLANT_ID, PASSWORD_CHANGE_YN, PASSWORD_CHANGE_DATE, FAIL_CNT
+          FROM E3_USER
+          WHERE  USER_ID = #USER_ID#
+        ]]>
+    </select>
+    <select id="SGN100_SELECTUSER">
+      <![CDATA[
+          SELECT USER_ID, USER_NAME, USER_PASSWORD, USER_EMAIL, LOGIN_ID, USE_YN, REG_ID, REG_DATE, MOD_ID, MOD_DATE, EXPIRY_DATE, PLANT_ID, PASSWORD_CHANGE_YN, PASSWORD_CHANGE_DATE, FAIL_CNT
+          FROM E3_USER
+          WHERE  USER_ID = #USER_ID#
+        ]]>
+    </select>
+  </statements>
+</sqlMap>

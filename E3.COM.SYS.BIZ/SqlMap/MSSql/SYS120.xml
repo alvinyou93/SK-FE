@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+    <statements>
+      <select id="SYS120_SELECT">
+        <![CDATA[
+          SELECT U.USER_ID 
+	          , U.USER_NAME 
+	          , U.USER_PASSWORD 
+	          , U.USER_EMAIL
+	          , U.USE_YN
+            , U.REG_ID
+            , U.REG_DATE 
+            , U.MOD_ID 
+            , U.MOD_DATE 
+            , U.PASSWORD_CHANGE_YN 
+            , U.PASSWORD_CHANGE_DATE 
+            , U.FAIL_CNT
+			, U.PLANT_ID
+			, C.CODE_NAME AS PLANT_NAME
+			, U.DEPART_ID
+			, C1.CODE_NAME AS DEPART_NAME
+          FROM E3_USER U
+		    LEFT OUTER JOIN E3_CODE C ON (U.PLANT_ID = C.CODE_ID)
+			LEFT OUTER JOIN E3_CODE C1 ON (U.DEPART_ID = C1.CODE_ID)
+          WHERE 1=1
+        ]]>
+		<isNotNull property="userId">
+			<isNotEmpty property="userId">
+			<![CDATA[
+            AND U.USER_ID LIKE CONCAT(CONCAT('%', #userId#), '%')
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="userName">
+			<isNotEmpty property="userName">
+			<![CDATA[
+            AND U.USER_NAME LIKE CONCAT(CONCAT('%', #userName#), '%')
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="plantId">
+			<isNotEmpty property="plantId">
+			<![CDATA[
+            AND U.PLANT_ID = #plantId#
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="departId">
+			<isNotEmpty property="departId">
+			<![CDATA[
+            AND U.DEPART_ID = #departId#
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+        <isNotNull property="use_yn">
+          <isNotEmpty property="use_yn">
+            <![CDATA[
+            AND U.USE_YN = #use_yn#
+          ]]>
+          </isNotEmpty>
+        </isNotNull>
+        <![CDATA[
+        ORDER BY U.PLANT_ID, U.USER_NAME, U.USER_ID ASC
+      ]]>
+      </select>
+
+	  <select id="SYS120_DIALOG_SELECT">
+		<![CDATA[
+          SELECT USER_ID 
+	          , USER_NAME
+	          , USER_EMAIL
+          FROM E3_USER
+          WHERE CONCAT(USER_NAME, USER_ID) LIKE CONCAT(CONCAT('%', #userName#), '%')
+        ]]>
+			<isNotNull property="use_yn">
+				<isNotEmpty property="use_yn">
+					<![CDATA[
+            AND USE_YN = #use_yn#
+          ]]>
+				</isNotEmpty>
+			</isNotNull>
+			<![CDATA[
+        ORDER BY USER_NAME, USER_ID ASC
+      ]]>
+	  </select>
+
+      <select id="SYS120_USER_COUNT">
+        <![CDATA[
+          SELECT COUNT(*) AS CNT
+          FROM E3_USER
+          WHERE USER_ID = #userId#
+        ]]>
+      </select>
+
+      <insert id="SYS120_INSERT">
+        <![CDATA[
+          INSERT INTO E3_USER (USER_ID, USER_NAME, USER_PASSWORD, USER_EMAIL, PLANT_ID, DEPART_ID, USE_YN, REG_ID, REG_DATE, EXPIRY_DATE)
+          VALUES(REPLACE(#userId#, ' ', ''), REPLACE(#userName#, ' ', ''), #userPassword#, #userEmail#, #plantId#, #departId#, #useYn#, #LoginedUserID#, GETDATE(), convert(varchar, #expiryDate#, 120))
+        ]]>
+      </insert>
+
+      <update id="SYS120_UPDATE">
+        <![CDATA[
+          UPDATE E3_USER
+            SET USER_NAME= #userName#
+              , USER_EMAIL= #userEmail#
+			  , PLANT_ID = #plantId#
+			  , DEPART_ID = #departId#
+              , USE_YN= #useYn#
+              , MOD_ID= #LoginedUserID#
+              , MOD_DATE= GETDATE()
+              , EXPIRY_DATE= convert(varchar, #expiryDate#, 120)
+          WHERE USER_ID = #userId#
+        ]]>
+      </update>
+
+      <delete id="SYS120_DELETE">
+        <![CDATA[
+          DELETE FROM E3_USER 
+          WHERE USER_ID = #userId#
+        ]]>
+      </delete>
+
+      <update id="SYS120_INITPASSWORD">
+        <![CDATA[
+          UPDATE E3_USER
+            SET FAIL_CNT = 0
+            , PASSWORD_CHANGE_YN = 'N'
+            , USER_PASSWORD = #password#
+            , MOD_DATE = GETDATE()
+          WHERE USER_ID = #userId#
+        ]]>
+      </update>
+      
+    </statements>
+</sqlMap>

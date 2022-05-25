@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+    <statements>
+      <select id="SYS110_SELECT">
+        <![CDATA[
+           SELECT MENU_ID 
+            , MENU_ID 
+	          , MENU_NAME
+	          , PARENT_ID
+	          , LVL AS "LEVEL"
+	          , MENU_DESCRIPTION
+	          , USE_YN
+	          , REG_ID
+	          , REG_DATE
+	          , MOD_ID
+	          , MOD_DATE
+	          , PROGRAM_ID
+	          , ORD
+          FROM E3_MENU M 
+          ORDER BY LVL, ORD
+        ]]>
+      </select>
+      
+      <select id="SYS110_DEPTH1_MENU_SELECT">
+        <![CDATA[
+          SELECT MENU_ID AS VALUE
+	          , MENU_NAME AS LABEL
+          FROM E3_MENU
+          WHERE PARENT_ID IS NULL
+        ]]>
+      </select>
+      
+      <select id="SYS110_DEPTH2_MENU_SELECT">
+        <![CDATA[
+          SELECT MENU_ID AS VALUE
+	          , MENU_NAME AS LABEL
+          from E3_MENU
+          where parent_id = #parentId# 
+          and LVL = #level#
+        ]]>
+      </select>
+    
+      <select id="SYS110_MENUID_COUNT">
+        <![CDATA[
+          select count(*) as CNT
+          from E3_MENU
+          where menu_id = #menuId# 
+        ]]>
+      </select>
+
+      <insert id="SYS110_INSERT">
+        <![CDATA[
+          INSERT INTO E3_MENU (MENU_ID, MENU_NAME, PARENT_ID, LVL, MENU_DESCRIPTION, USE_YN, ORD, REG_ID, REG_DATE, PROGRAM_ID)
+          VALUES (#menuId#, #menuName#, #parentId#, #level#, #menuDesc#, #useYn#, #ord#, #LoginedUserID# , SYSDATE, #programId#)
+        ]]>
+      </insert>
+
+      <update id="SYS110_UPDATE">
+        <![CDATA[
+          UPDATE E3_MENU
+            SET MENU_NAME=#menuName#
+            , MENU_DESCRIPTION=#menuDesc#
+            , PROGRAM_ID=#programId#
+            , USE_YN=#useYn#
+            , ORD = #ord#
+            , MOD_ID=#LoginedUserID#
+            , MOD_DATE=SYSDATE
+          WHERE MENU_ID=#menuId#
+        ]]>
+      </update>
+
+      <select id="SYS110_AUTH_MENU_SELECT">
+        <![CDATA[
+          SELECT COUNT(*)
+          FROM   E3_AUTH_MENU_MAPPING
+          WHERE  MENU_ID = #menuId#
+        ]]>
+      </select>
+
+      <delete id="SYS110_DELETE">
+        <![CDATA[
+          DELETE FROM E3_MENU WHERE MENU_ID = #menuId#
+        ]]>
+      </delete>
+    </statements>
+</sqlMap>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WEB070_SELECT_DEVICE">
+			   <![CDATA[
+			  SELECT SERIALNO AS VALUE
+					,LOCATION AS LABEL
+				FROM SE_TA_FACEDETECT
+			   WHERE 1=1
+			  ]]>
+			  <isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					<![CDATA[
+					AND PLANT_ID = #PLANT_ID#  
+					]]>
+				</isNotEmpty>
+			  </isNotNull>
+		</select>		
+		
+		<select id="WEB070_SELECT">
+			<![CDATA[
+			SELECT TT1.DEVICE_SN
+				  ,TT1.LOCATION
+				  ,TT1.EMP_NM
+				  ,TT1.CMP_NM				
+				  ,TT1.EMP_TEL_NO
+				  ,TT1.BIRTH_DT
+				  ,TT1.ADDR
+				  ,TT1.EVENT_DATE
+				  ,TT1.EVENT_DT
+				  ,TT1.EVENT_RESULT
+				  ,CASE WHEN TT2.RANK IS NULL THEN '' 
+				        WHEN (TT2.RANK % 2) = '1' THEN '입문' ELSE '출문' END AS ENTER_GB
+			  FROM (
+					  SELECT DEVICE_SN
+							,T3.LOCATION
+							,T2.EMP_NM
+							,T4.CMP_NM				
+							,DBO.FN_MASK_TELNO(T2.EMP_TEL_NO) AS EMP_TEL_NO
+							,T2.BIRTH_DT
+							,T2.ADDR
+							,CONVERT(VARCHAR(23), EVENT_DATE, 21) AS EVENT_DATE
+							,CONVERT(VARCHAR(8),EVENT_DATE,112) AS EVENT_DT
+							,T1.EVENT_RESULT
+							,T1.USER_ID
+							,T3.PLANT_ID
+							,T3.FACT_CD
+						FROM SE_TA_LOG T1
+							 INNER JOIN SE_TA_EMP T2 ON T1.USER_ID = T2.EMP_ID
+							 INNER JOIN SE_TA_FACEDETECT T3 ON T1.DEVICE_SN = T3.SERIALNO AND T2.PLANT_ID = T3.PLANT_ID
+							 LEFT OUTER JOIN (		   SELECT A.UPLOAD_SEQ, A.EMP_ID, A.CMP_ID, B.CMP_NM
+														 FROM SE_TA_EMP_EXCEL A INNER JOIN SE_TA_CMP B ON A.CMP_ID = B.CMP_ID
+														WHERE NOT EXISTS (SELECT 1 FROM SE_TA_EMP_EXCEL WHERE EMP_ID = A.EMP_ID AND UPLOAD_SEQ > A.UPLOAD_SEQ)
+											  ) T4 ON T1.USER_ID = T4.EMP_ID
+			]]>                        
+
+			<isNotNull property="START_DT">
+				<isNotEmpty property="START_DT">
+          <![CDATA[
+						WHERE EVENT_DATE BETWEEN #START_DT# AND CONVERT(VARCHAR(8),DATEADD(dd, 1, #END_DT#),112)
+         ]]>
+      </isNotEmpty>
+			</isNotNull>
+
+      <![CDATA[                 
+				) TT1 LEFT OUTER JOIN (			SELECT USER_ID
+													  ,EVENT_DATE
+													  ,DEVICE_SN													  
+													  ,RANK
+												FROM (
+													 SELECT USER_ID
+													      , DEVICE_SN													 
+														  , EVENT_DATE
+														  , ROW_NUMBER() OVER (PARTITION BY USER_ID, CONVERT(VARCHAR(8),EVENT_DATE,112) ORDER BY EVENT_DATE) AS RANK
+													   FROM SE_TA_LOG
+													  WHERE EVENT_RESULT = 'Y'													   
+													 ) A
+										) TT2 ON TT1.USER_ID = TT2.USER_ID AND TT1.DEVICE_SN = TT2.DEVICE_SN AND  TT1.EVENT_DATE = TT2.EVENT_DATE
+		    WHERE 1 = 1
+      ]]>  
+
+			<isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					<![CDATA[
+				AND TT1.PLANT_ID = #PLANT_ID#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="FACT_CD">
+				<isNotEmpty property="FACT_CD">
+					<![CDATA[
+				AND TT1.FACT_CD = #FACT_CD#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="DEVICE_SN">
+				<isNotEmpty property="DEVICE_SN">
+					<![CDATA[
+				AND TT1.DEVICE_SN = #DEVICE_SN#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="EMP_NM">
+				<isNotEmpty property="EMP_NM">
+					<![CDATA[
+				AND TT1.EMP_NM LIKE CONCAT('%', #EMP_NM#, '%')
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+      <isNotNull property="CMP_NM">
+        <isNotEmpty property="CMP_NM">
+          <![CDATA[
+				AND TT1.CMP_NM LIKE CONCAT('%', #CMP_NM#, '%')
+				]]>
+        </isNotEmpty>
+      </isNotNull>
+
+      <![CDATA[
+				ORDER BY TT1.EVENT_DATE ASC
+      ]]>
+    </select>
+
+		<select id="WEB070_SELECT_CNT_INFO">
+			<![CDATA[
+					SELECT COUNT(*) CNT
+					FROM (
+						SELECT DISTINCT 
+							 T2.EMP_ID
+							,T2.EMP_TEL_NO
+              ,T4.CMP_NM
+						FROM SE_TA_LOG T1
+							 INNER JOIN SE_TA_EMP T2 ON T1.USER_ID = T2.EMP_ID
+							 INNER JOIN SE_TA_FACEDETECT T3 ON T1.DEVICE_SN = T3.SERIALNO AND T2.PLANT_ID = T3.PLANT_ID
+							 LEFT OUTER JOIN (		   SELECT A.UPLOAD_SEQ, A.EMP_ID, A.CMP_ID, B.CMP_NM
+														 FROM SE_TA_EMP_EXCEL A INNER JOIN SE_TA_CMP B ON A.CMP_ID = B.CMP_ID
+														WHERE NOT EXISTS (SELECT 1 FROM SE_TA_EMP_EXCEL WHERE EMP_ID = A.EMP_ID AND UPLOAD_SEQ > A.UPLOAD_SEQ)
+											  ) T4 ON T1.USER_ID = T4.EMP_ID
+					   WHERE 1=1
+			]]>
+						<isNotNull property="PLANT_ID">
+							<isNotEmpty property="PLANT_ID">
+								<![CDATA[
+							AND T2.PLANT_ID = #PLANT_ID#
+							]]>
+							</isNotEmpty>
+						</isNotNull>
+						<isNotNull property="FACT_CD">
+							<isNotEmpty property="FACT_CD">
+								<![CDATA[
+							AND T3.FACT_CD = #FACT_CD#
+							]]>
+							</isNotEmpty>
+						</isNotNull>
+						<isNotNull property="DEVICE_SN">
+							<isNotEmpty property="DEVICE_SN">
+								<![CDATA[
+							AND T1.DEVICE_SN = #DEVICE_SN#
+							]]>
+							</isNotEmpty>
+						</isNotNull>
+						<isNotNull property="START_DT">
+							<isNotEmpty property="START_DT">
+								<![CDATA[
+						    AND CONVERT(VARCHAR(8),T1.EVENT_DATE,112) BETWEEN #START_DT# AND #END_DT#								
+							]]>
+							</isNotEmpty>
+						</isNotNull>
+						<isNotNull property="EMP_NM">
+							<isNotEmpty property="EMP_NM">
+								<![CDATA[
+							AND T2.EMP_NM LIKE CONCAT('%', #EMP_NM#, '%')
+							]]>
+							</isNotEmpty>
+						</isNotNull>
+						<isNotNull property="CMP_NM">
+							<isNotEmpty property="CMP_NM">
+								<![CDATA[
+              AND T4.CMP_NM LIKE CONCAT('%', #CMP_NM#, '%')
+							]]>
+							</isNotEmpty>
+						</isNotNull>      
+			) TT1
+		</select>		
+
+	</statements>
+</sqlMap>

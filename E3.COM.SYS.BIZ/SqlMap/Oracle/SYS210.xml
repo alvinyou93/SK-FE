@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+  <statements>
+      <select id="SYS210_AUTH_SELECT">
+      <![CDATA[
+        SELECT AUTHORITY_ID
+              , AUTHORITY_NAME
+              , AUTHORITY_DESC
+              , PLANT_ID
+              , USE_YN
+              , REG_ID
+              , REG_DATE
+              , MOD_ID
+              , MOD_DATE
+          FROM E3_AUTH
+          WHERE 1=1
+            AND AUTHORITY_NAME LIKE concat(concat('%', #authority_name#), '%') 
+            and use_yn = #use_yn#
+          ORDER BY AUTHORITY_NAME, AUTHORITY_ID ASC
+      ]]>
+    </select>
+    
+    <select id="SYS210_SELECT">
+      <![CDATA[
+          SELECT plant_id as plantId 
+              , (SELECT code_name FROM E3_CODE c WHERE c.code_id = a.plant_id) as plantName 
+              , authority_id as authorityId
+              , authority_name as authorityName
+              , authority_desc as authorityDesc
+              , use_yn as useYn
+              ,(SELECT code_name FROM E3_CODE c WHERE c.code_id = a.use_yn) as useYnName 
+              , reg_id as regId
+              , reg_date as regDate
+              , mod_id as modId
+              , mod_date as modDate
+          FROM e3_auth a
+          WHERE plant_id like concat(concat('%', #plantId#), '%')
+          AND   authority_id like concat(concat('%', #authorityId#), '%')
+          ORDER BY authority_name, authority_id ASC
+      ]]>
+    </select>
+
+    <select id="SYS210_COUNT">
+      <![CDATA[
+        SELECT COUNT(*) AS CNT FROM e3_auth
+        WHERE 1=1
+        AND authority_id=#authorityId# 
+      ]]>
+      
+    </select>
+
+    <insert id="SYS210_INSERT">
+      <![CDATA[
+        INSERT INTO e3_auth (plant_id, authority_id, authority_name, authority_desc, use_yn, reg_id, reg_date)
+        VALUES (#plantId#, #authorityId#, #authorityName#, #authorityDesc#, #useYn#, #LoginedUserID#, TO_DATE(#Now#, 'YYYY-MM-DD HH24:MI:SS'))
+      ]]>
+    </insert>
+
+    <update id="SYS210_UPDATE">
+      <![CDATA[
+        UPDATE e3_auth
+          SET plant_id=#plantId#
+          , authority_name=#authorityName#
+          , authority_desc=#authorityDesc#
+          , use_yn=#useYn#
+          , mod_id=#LoginedUserID#
+          , mod_date=TO_DATE(#Now#, 'YYYY-MM-DD HH24:MI:SS')
+        WHERE authority_id=#authorityId# 
+      ]]>
+    </update>
+
+    <delete id="SYS210_DELETE">
+      <![CDATA[
+        DELETE FROM e3_auth
+        WHERE plant_id=#plantId#
+        AND  authority_id=#authorityId#
+      ]]>
+    </delete>
+  </statements>
+</sqlMap>

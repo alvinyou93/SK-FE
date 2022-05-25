@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+  <statements>
+	  <select id="SYS300_COUNT">
+	    <![CDATA[
+		    SELECT COUNT(*) AS CNT
+		  	FROM E3_CFG_BUTTON
+			  WHERE BTN_ID = #buttonId#
+	    ]]>
+	   </select>
+	   
+    <select id="SYS300_SELECT">
+      <![CDATA[
+        SELECT BTN_ID, BTN_NAME, BTN_TYPE, BTN_EVENT, BTN_SERVICE, BTN_IMAGE, USE_YN, REG_ID, REG_DATE, MOD_ID, MOD_DATE
+				FROM E3_CFG_BUTTON
+		    WHERE BTN_ID  LIKE CONCAT(CONCAT('%', #searchId#), '%')
+        AND BTN_NAME LIKE CONCAT(CONCAT('%', #searchName#), '%')
+			  AND BTN_TYPE LIKE CONCAT(CONCAT('%', #searchType#), '%')
+      ]]>
+      <isNotNull property="use_yn">
+        <isNotEmpty property="use_yn">
+          <![CDATA[
+            AND USE_YN = #use_yn#
+          ]]>
+        </isNotEmpty>
+      </isNotNull>
+      <![CDATA[
+        ORDER BY BTN_ID ASC, BTN_NAME ASC, BTN_TYPE ASC
+      ]]>
+    </select>
+
+    <insert id="SYS300_INSERT">
+      <![CDATA[
+          INSERT INTO E3_CFG_BUTTON (BTN_ID, BTN_NAME, BTN_TYPE, BTN_EVENT, BTN_SERVICE, BTN_IMAGE, USE_YN, REG_ID) 
+					VALUES (
+              #buttonId# ,#buttonName# ,#buttonType# ,#buttonEvent# ,#buttonService# ,#buttonImage# ,#useYn# ,#LoginedUserID#
+          )
+        ]]>
+    </insert>
+
+    <delete id="SYS300_DELETE">
+      <![CDATA[
+					DELETE FROM E3_CFG_BUTTON
+					WHERE BTN_ID = #buttonId#
+        ]]>
+    </delete>
+
+	<update id="SYS300_UPDATE">
+		  <![CDATA[
+        UPDATE E3_CFG_BUTTON SET
+            BTN_NAME     = #buttonName#,
+            BTN_TYPE     = #buttonType#,
+            BTN_EVENT    = #buttonEvent#,
+            BTN_SERVICE  = #buttonService#,
+            BTN_IMAGE    = #buttonImage#,
+            USE_YN       = #useYn#,
+            MOD_ID       = #LoginedUserID#,
+            MOD_DATE     = SYSDATE
+        WHERE BTN_ID = #buttonId#
+		  ]]>
+	</update>
+  
+  </statements>
+</sqlMap>

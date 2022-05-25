@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.Common.System" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+    <statements>
+        <select ID="SYSTEM_ALLOWD_IP_ADDRESS">
+            <![CDATA[
+              SELECT *
+              FROM E3_ALLOW_IP_ADDRESS 
+          ]]>
+        </select>
+      <select ID="SYSTEM_CLASS_INFO_SELECT">
+          <![CDATA[
+              SELECT *
+              FROM E3_PGM 
+              WHERE PROGRAM_ID = #PROGRAM_ID#
+          ]]>
+    </select>
+
+    <select ID="SYSTEM_USER_SELECT">
+      <![CDATA[
+              SELECT USER_ID
+                    , USER_PASSWORD AS USER_PWD
+                    , FAIL_CNT
+              FROM E3_USER 
+              WHERE 1=1
+              AND USER_ID  = #USER_ID#
+          ]]>
+    </select>
+
+    <select ID="SYSTEM_MULTILINGUAL_SELECT">
+      <![CDATA[
+            SELECT MESSAGE_ID
+	            , LANGUAGE_ID
+	            , MESSAGE_TYPE
+	            , MESSAGE
+            FROM E3_MESSAGE
+          ]]>
+    </select>
+
+    <update id="SYSTEM_USER_LOGIN_FAIL_UPDATE">
+      <![CDATA[
+          UPDATE E3_USER
+            SET FAIL_CNT = FAIL_CNT + 1
+          WHERE USER_ID = #USER_ID#
+        ]]>
+    </update>
+
+    <update id="SYSTEM_USER_LOGIN_SUCCESS_UPDATE">
+      <![CDATA[
+          UPDATE E3_USER
+            SET FAIL_CNT = 0
+          WHERE USER_ID = #USER_ID#
+        ]]>
+    </update>
+
+    <insert id="SYSTEM_LOG_INSERT">
+      <![CDATA[
+        INSERT INTO E3_LOG(LOG_ID, LOG_TYPE, PROGRAM_ID, ERROR_MESSAGE, USER_ID, IPADDRESS, REG_DATE) 
+        VALUES(#LOG_ID#, #LOG_TYPE#, #PROGRAM_ID#, #ERROR_MESSAGE#, #USER_ID#, #IPADDRESS#, SYSDATE)
+      ]]>
+    </insert>
+
+  </statements>
+</sqlMap>

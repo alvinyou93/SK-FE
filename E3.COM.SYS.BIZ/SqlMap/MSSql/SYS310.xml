@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+  <statements>
+    <select id="SYS310_COUNT">
+      <![CDATA[
+        SELECT COUNT(*) as COUNT
+        FROM E3_ALLOW_IP_ADDRESS
+        WHERE IDX = #idx#
+	    ]]>
+    </select>
+
+    <select id="SYS310_SELECT">
+      <![CDATA[
+        SELECT IDX, FROMIP, TOIP, REG_ID, REG_DATE, MOD_ID, MOD_DATE
+        FROM E3_ALLOW_IP_ADDRESS
+        WHERE 1=1
+      ]]>
+      <isNotNull property="searchFromIp">
+        <isNotEmpty property="searchFromIp">
+          <![CDATA[
+            AND FROMIP LIKE '%'+ #searchFromIp# +'%'
+            ]]>
+        </isNotEmpty>
+      </isNotNull>
+      <isNotNull property="searchToIp">
+        <isNotEmpty property="searchToIp">
+          <![CDATA[
+            AND TOIP LIKE '%'+ #searchToIp# +'%'
+            ]]>
+        </isNotEmpty>
+      </isNotNull>
+      <![CDATA[
+        ORDER BY FROMIP, TOIP ASC
+      ]]>
+    </select>
+
+    <insert id="SYS310_INSERT">
+      <![CDATA[
+        INSERT INTO E3_ALLOW_IP_ADDRESS (IDX, FROMIP, TOIP, REG_ID)
+        VALUES ((SELECT ISNULL(MAX(IDX)+1, 1) FROM E3_ALLOW_IP_ADDRESS), #fromIp#, #toIp#, #LoginedUserID#)
+      ]]>
+    </insert>
+
+    <update id="SYS310_UPDATE">
+      <![CDATA[
+        UPDATE E3_ALLOW_IP_ADDRESS SET FROMIP=#fromIp#, TOIP=#toIp#, MOD_ID=#LoginedUserID#, MOD_DATE=GETDATE()
+        WHERE IDX = #idx#
+      ]]>
+    </update>
+
+    <delete id="SYS310_DELETE">
+      <![CDATA[
+        DELETE FROM E3_ALLOW_IP_ADDRESS WHERE IDX = #idx#
+      ]]>
+    </delete>
+
+  </statements>
+</sqlMap>

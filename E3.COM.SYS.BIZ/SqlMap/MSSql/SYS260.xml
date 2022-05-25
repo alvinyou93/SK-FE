@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+  <statements>
+    <select id="SYS260_SELECT">
+      <![CDATA[
+        SELECT M.MENU_ID
+          , M.MENU_ID AS VALUE
+          , M.MENU_NAME
+          , M.PARENT_ID
+          , M.MENU_DESCRIPTION 
+          , M.USE_YN 
+          , M.REG_ID 
+          , M.REG_DATE 
+          , M.MOD_ID 
+          , M.MOD_DATE 
+          , M.PROGRAM_ID
+          , M.ORD 
+        FROM E3_MENU M
+	        INNER JOIN ( SELECT AM.MENU_ID 
+				              FROM E3_AUTH A
+					              INNER JOIN E3_AUTH_MENU_MAPPING AM
+						              ON A.AUTHORITY_ID = AM.AUTHORITY_ID
+				              WHERE USE_YN = 'Y'
+                      AND   AM.AUTHORITY_ID = #AUTHORITY_ID#) A
+	        ON M.MENU_ID = A.MENU_ID
+        ORDER BY LVL, ORD
+      ]]>      
+    </select>
+
+
+    <select id="SYS260_SELECT_AUTH">
+      <![CDATA[
+          SELECT plant_id
+              , AUTHORITY_ID
+              , AUTHORITY_NAME
+              , AUTHORITY_DESC
+          FROM e3_auth a
+          WHERE a.AUTHORITY_ID IN (SELECT DISTINCT AUTHORITY_ID FROM E3_AUTH_MENU_MAPPING)
+          AND a.USE_YN='Y'
+          ORDER BY authority_name, authority_id ASC
+      ]]>
+    </select>
+
+    <select id="SYS260_SELECT_BUTTON">
+      <![CDATA[
+        SELECT CASE WHEN AB.BTN_ID IS NULL THEN 0
+			        ELSE 1
+			        END AS CHK, B.BTN_ID, 
+            BTN_NAME, BTN_TYPE, BTN_EVENT, BTN_SERVICE, BTN_IMAGE, 
+            USE_YN, REG_ID, REG_DATE, MOD_ID, MOD_DATE 
+        FROM E3_CFG_BUTTON B
+	        LEFT JOIN ( SELECT A.BTN_ID 
+				              FROM E3_AUTH_MENU_BTN_MAPPING A
+				              WHERE USE_YN = 'Y'
+                        AND   A.AUTHORITY_ID = #authorityId#
+                        AND   A.MENU_ID = #menuId#
+                      ) AB
+	        ON B.BTN_ID = AB.BTN_ID
+        ORDER BY BTN_ID, BTN_NAME
+      ]]>
+    </select>
+
+    <insert id="SYS260_INSERT">
+      <![CDATA[
+        INSERT INTO E3_AUTH_MENU_BTN_MAPPING  (AUTHORITY_ID, MENU_ID, BTN_ID, REG_ID)
+        VALUES(#authorityId#, #menuId#, #buttonId#, #LoginedUserID#)
+      ]]>
+    </insert>
+
+	<insert id="SYS260_INSERT_LIST" parameterClass="ArrayList">
+		<![CDATA[
+		INSERT INTO E3_AUTH_MENU_BTN_MAPPING  (AUTHORITY_ID, MENU_ID, BTN_ID, REG_ID)
+		VALUES
+		]]>
+		<iterate property="param" index="index" collection="list" conjunction="), (" open="(" close=")">
+		<![CDATA[
+		 #param[].authorityId#, #param[].menuId#, #param[].buttonId#, #param[].LoginedUserID#
+	    ]]>
+		</iterate >
+	</insert>
+
+    <delete id="SYS260_DELETE">
+      <![CDATA[
+        DELETE FROM E3_AUTH_MENU_BTN_MAPPING WHERE AUTHORITY_ID = #authorityId# AND MENU_ID=#menuId#
+      ]]>
+    </delete>
+
+    <delete id="SYS260_DELETE4AUTH">
+      <![CDATA[
+        DELETE FROM E3_AUTH_MENU_BTN_MAPPING WHERE AUTHORITY_ID = #authorityId#
+      ]]>
+    </delete>
+  </statements>
+</sqlMap>

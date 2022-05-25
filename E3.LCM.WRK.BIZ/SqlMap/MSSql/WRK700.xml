@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.LCM.WRK.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+	<statements>
+		<select id="WRK700_SELECT">
+			<![CDATA[
+				SELECT	  T1.[PLANT_ID]
+              ,T1.[TA_ID]
+              ,T1.[FACILITY_KND]
+			  ,[FACILITY_KND_NM]
+			  ,T1.[REG_ID]
+              ,T1.[REG_DATE]
+              ,T1.[MOD_ID]
+              ,T1.[MOD_DATE]
+			  ,T1.[USE_YN]
+			  ,T1.[IDX]
+			  ,P.CODE_NAME AS TA
+			  ,E.CODE_NAME AS PLANT
+          FROM [TB_TS_FACILITY_GROUP] T1
+		  INNER JOIN E3_CODE P ON (T1.TA_ID = P.CODE_ID AND P.CODE_ID <> P.PARENT_ID AND P.USE_YN = 'Y') 
+		  INNER JOIN E3_CODE E ON (T1.PLANT_ID = E.CODE_ID AND E.CODE_ID <> P.PARENT_ID AND P.USE_YN = 'Y')
+        ]]>
+			WHERE 1=1
+			<isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					AND T1.PLANT_ID = #PLANT_ID#
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="TA_ID">
+				<isNotEmpty property="TA_ID">
+					AND T1.TA_ID = #TA_ID#
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="FACILITY_KND">
+				<isNotEmpty property="FACILITY_KND">
+					AND T1.FACILITY_KND = #FACILITY_KND#
+				</isNotEmpty>
+			</isNotNull>
+		</select>
+
+		<select id="WRK700_SELECT_CODE">
+			<![CDATA[
+          SELECT CODE_ID AS VALUE 
+	          ,CODE_NAME AS LABEL
+          FROM E3_CODE
+          WHERE PARENT_ID = #codeId#
+          AND CODE_ID <> PARENT_ID
+		  ]]>
+		</select>
+
+		<select id="WRK700_CHECK_EMPTY">
+			<![CDATA[
+        SELECT CASE WHEN ISNULL(#PLANT_ID#, '') = '' THEN 'FALSE' ELSE #PLANT_ID# END
+              + CASE WHEN ISNULL(#TA_ID#, '') = '' THEN 'FALSE' ELSE #TA_ID# END
+              + CASE WHEN ISNULL(#FACILITY_KND#, '') = '' THEN 'FALSE' ELSE #FACILITY_KND# END AS CHK_DATA
+        ]]>
+		</select>
+
+		<select id="WRK700_CHECK_CNT">
+			<![CDATA[
+          SELECT COUNT(*) AS CNT
+          FROM TB_TS_FACILITY_GROUP
+          WHERE PLANT_ID = #PLANT_ID#
+		  AND TA_ID = #TA_ID#
+		  AND FACILITY_KND IN (SELECT TRIM(#FACILITY_KND#) FROM TB_TS_FACILITY_GROUP)
+        ]]>
+		</select>
+
+		WRK700_CHECK_CNT_UPDATE
+		<select id="WRK700_CHECK_CNT_UPDATE">
+			<![CDATA[
+          SELECT COUNT(*) AS CNT
+          FROM TB_TS_FACILITY_GROUP
+          WHERE PLANT_ID = #PLANT_ID#
+		  AND TA_ID = #TA_ID#
+		  AND FACILITY_KND IN (SELECT TRIM(#FACILITY_KND#) FROM TB_TS_FACILITY_GROUP)
+        ]]>
+		</select>
+
+		<select id="WRK700_CHECK_USE">
+			<![CDATA[
+        SELECT COUNT(*) AS CNT
+          FROM WK_SIGN_SHEET
+          WHERE PLANT_ID = #PLANT_ID#
+		    AND TA_ID = #TA_ID#
+		    AND FACILITY_KND = #FACILITY_KND#	
+        ]]>
+		</select>
+
+		<insert id="WRK700_INSERT_MAIN_LIST">
+			<![CDATA[
+        INSERT INTO TB_TS_FACILITY_GROUP
+        (     PLANT_ID    /*사업장ID*/
+            , TA_ID    /*TA ID*/
+            , FACILITY_KND    /*설비종류*/
+			, FACILITY_KND_NM /*설비종류명*/
+            , REG_ID      /*등록자ID*/
+            , REG_DATE    /*등록일자*/
+        ) 
+		VALUES 
+        (
+              #PLANT_ID#    /*사업장ID*/
+            , #TA_ID#    /*TA ID*/
+            , TRIM(#FACILITY_KND#)    /*설비종류*/
+			, TRIM(#FACILITY_KND_NM#) /*설비종류명*/
+            , #LOGINID#     /*등록자ID*/
+            , GETDATE()           /*등록일자*/
+        )        
+        ]]>
+		</insert>
+
+		<update id="WRK700_UPDATE_MAIN_LIST">
+			<![CDATA[
+          UPDATE TB_TS_FACILITY_GROUP
+            SET PLANT_ID= #PLANT_ID#
+			  , TA_ID= #TA_ID#
+			  , FACILITY_KND= TRIM(#FACILITY_KND#)
+			  , FACILITY_KND_NM= TRIM(#FACILITY_KND_NM#)
+              , MOD_ID= #LOGINID#
+              , MOD_DATE= GETDATE()
+			  , USE_YN= #USE_YN#
+          WHERE IDX = #IDX#
+        ]]>
+		</update>
+
+		<delete id="WRK700_DELETE_MAIN_LIST">
+			<![CDATA[
+          DELETE FROM TB_TS_FACILITY_GROUP
+		  WHERE PLANT_ID = #PLANT_ID# 
+		    AND TA_ID = #TA_ID# 
+			AND FACILITY_KND = #FACILITY_KND#
+		]]>
+		</delete>
+
+	</statements>
+</sqlMap>

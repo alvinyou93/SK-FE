@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+    <statements>
+	   <select id="SYS100_COUNT">
+	    <![CDATA[
+		    SELECT COUNT(*) as COUNT
+			    FROM E3_CODE
+                WHERE ISNULL(CODE_CLASS_ID, '') = ISNULL(#codeClassId#, '')
+			    AND CODE_ID= #codeId#
+				AND PLANT_ID = #plantId#
+	    ]]>
+	   </select>
+		
+      <select id="SYS100_SELECT_CODE">
+        <![CDATA[
+          SELECT CODE_ID AS VALUE 
+	          ,CODE_NAME AS LABEL
+          FROM E3_CODE
+          WHERE PARENT_ID = #codeId#
+          AND CODE_ID <> PARENT_ID
+		  AND USE_YN = 'Y'
+		  ]]>
+		  <isNotNull property="plantId">
+				<isNotEmpty property="plantId">
+					<![CDATA[
+					AND PLANT_ID = #plantId# 
+					]]>
+		  </isNotEmpty>
+		  </isNotNull>		  
+          ORDER BY DISPLAY_SEQ, CODE_NAME, CODE_ID ASC
+        
+      </select>
+
+		<select id="SYS100_SELECT_COMBO">
+			<![CDATA[
+            WITH CTE_MST([LVL], [CODE_ID], [PARENT_ID], [CODE_NAME], [ORD], [DISPLAY_SEQ])
+            AS (
+                SELECT 0 [LVL], [CODE_ID], [PARENT_ID], [CODE_NAME], CAST([CODE_ID] AS VARCHAR(1000)) [ORD], [DISPLAY_SEQ]
+                FROM [E3_CODE] WHERE [PARENT_ID] IS NULL
+                UNION ALL
+                SELECT o.[LVL] + 1 [LVL], e.[CODE_ID], e.[PARENT_ID], e.[CODE_NAME], CAST(o.[ORD]+e.[CODE_ID] AS VARCHAR(1000)) [ORD], e.[DISPLAY_SEQ]
+                FROM [E3_CODE] e INNER JOIN CTE_MST o ON o.[CODE_ID] = e.[PARENT_ID]
+            )
+            SELECT [CODE_ID] [VALUE], CASE [LVL] WHEN 0 THEN '' ELSE '└' + REPLICATE('─', [LVL]) + ' ' END + [CODE_NAME] + ' [' + [CODE_ID] + ']' [LABEL]
+            FROM CTE_MST
+            ORDER BY [ORD], [LVL], [DISPLAY_SEQ]
+        ]]>
+		</select>
+
+		<select id="SYS100_SELECT">
+			<![CDATA[
+                select CODE_CLASS_ID AS codeClassId
+                ,CODE_ID AS codeId
+                ,CODE_NAME AS codeName
+                ,PARENT_ID AS parentId
+                from E3_CODE
+           ]]>
+		</select>
+
+		<select id="SYS100_SELECT_GROUP">
+			<![CDATA[
+              SELECT C.CODE_CLASS_ID AS CODECLASSID
+                ,C.CODE_ID AS CODEID
+                ,C.CODE_NAME AS CODENAME
+                ,C.PARENT_ID AS PARENTID
+                ,C.DESCRIPTION AS DESCRIPTION
+                ,C.DISPLAY_SEQ AS DISPLAYSEQ
+                                 ,C.TEMP_01
+                ,C.TEMP_02
+                ,C.TEMP_03
+                ,C.TEMP_04
+                ,C.TEMP_05
+                ,C.USE_YN
+                ,C.PLANT_ID
+                                 ,ISNULL(P.CODE_NAME, '공통') AS PLANT_NAME
+                FROM E3_CODE C
+                                 LEFT OUTER JOIN (SELECT CODE_NAME, CODE_ID FROM [E3_CODE] WHERE PARENT_ID='PLANTID') P ON (P.CODE_ID=C.PLANT_ID)
+              WHERE 1=1
+        ]]>
+			<isNotNull property="codeId">
+				<isNotEmpty property="codeId">
+					<![CDATA[
+            AND C.CODE_ID LIKE '%'+ #codeId# +'%'
+            ]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isEmpty property="codeId">
+				<![CDATA[
+                         AND LEN(ISNULL(C.PARENT_ID, '')) = 0
+                         ]]>
+			</isEmpty>
+			<isNull property="codeId">
+				<![CDATA[
+                         AND LEN(ISNULL(C.PARENT_ID, '')) = 0
+                         ]]>
+			</isNull>
+
+			<isNotNull property="codeName">
+				<isNotEmpty property="codeName">
+					<![CDATA[
+            AND C.CODE_NAME LIKE '%'+#codeName#+'%'
+            ]]>
+				</isNotEmpty>
+			</isNotNull>
+			<![CDATA[
+          ORDER BY C.CODE_NAME, C.CODE_ID ASC
+        ]]>
+		</select>
+
+		<select id="SYS100_DIALOG_SELECT">
+			<![CDATA[
+            WITH CTE_MST([LVL], [CODE_ID], [PARENT_ID], [CODE_NAME], [ORD], [DISPLAY_SEQ])
+            AS (
+                SELECT 0 [LVL], [CODE_ID], [PARENT_ID], [CODE_NAME], CAST([CODE_ID] AS VARCHAR(1000)) [ORD], [DISPLAY_SEQ]
+                FROM [e3].[dbo].[E3_CODE] WHERE [PARENT_ID] IS NULL
+                UNION ALL
+                SELECT o.[LVL] + 1 [LVL], e.[CODE_ID], e.[PARENT_ID], e.[CODE_NAME], CAST(o.[ORD] AS VARCHAR(1000)) [ORD], e.[DISPLAY_SEQ]
+                FROM [e3].[dbo].[E3_CODE] e INNER JOIN CTE_MST o ON o.[CODE_ID] = e.[PARENT_ID]
+            )
+            SELECT [CODE_ID] [CODEID], REPLICATE('..', [LVL]) + [CODE_NAME] + ' [' + [CODE_ID] + ']' [CODENAME]
+            FROM CTE_MST
+            WHERE 1=1
+        ]]>
+			<isNotNull property="codeName">
+				<isNotEmpty property="codeName">
+					<![CDATA[
+            AND CONCAT(CODE_NAME, CODE_ID) LIKE '%'+#codeName#+'%'
+            ]]>
+				</isNotEmpty>
+			</isNotNull>
+			<![CDATA[
+          ORDER BY [ORD], [LVL], [DISPLAY_SEQ]
+        ]]>
+		</select>
+
+		<select id="SYS100_SELECT_CHILDREN">
+			<![CDATA[
+                SELECT C.CODE_CLASS_ID AS CODECLASSID
+                ,C.CODE_ID AS CODEID
+                ,C.CODE_NAME AS CODENAME
+                ,C.PARENT_ID AS PARENTID
+                ,C.DESCRIPTION AS DESCRIPTION
+                ,C.DISPLAY_SEQ AS DISPLAYSEQ
+                                 ,C.TEMP_01
+                ,C.TEMP_02
+                ,C.TEMP_03
+                ,C.TEMP_04
+                ,C.TEMP_05
+                ,C.USE_YN
+                ,C.PLANT_ID
+                                 ,ISNULL(P.CODE_NAME, '공통') AS PLANT_NAME
+                FROM E3_CODE C
+                                 LEFT OUTER JOIN (SELECT CODE_NAME, CODE_ID FROM [E3_CODE] WHERE PARENT_ID='PLANTID') P ON (P.CODE_ID=C.PLANT_ID)
+                WHERE C.CODE_ID <> C.PARENT_ID
+                AND C.PARENT_ID = #codeId#
+                ORDER BY C.DISPLAY_SEQ, C.CODE_NAME, C.CODE_ID ASC
+        ]]>
+		</select>
+
+		<select id="SYS100_SAVE_CHECK">
+			<![CDATA[
+              SELECT CODE_CLASS_ID, PLANT_ID, PARENT_ID, CODE_ID, CODE_NAME
+              FROM E3_CODE
+                           WHERE CODE_ID = #codeId#
+          ]]>
+			<isNotNull property="codeClassId">
+				<isNotEmpty property="codeClassId">
+					<![CDATA[
+                    AND CODE_CLASS_ID = #codeClassId#
+                ]]>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="parentId">
+				<isNotEmpty property="parentId">
+					<![CDATA[
+                    AND PARENT_ID = #parentId#
+                ]]>
+				</isNotEmpty>
+			</isNotNull>
+		</select>
+
+		<insert id="SYS100_INSERT">
+			<![CDATA[
+            INSERT INTO E3_CODE (CODE_ID, CODE_NAME, PARENT_ID, DESCRIPTION, DISPLAY_SEQ, PLANT_ID, USE_YN, TEMP_01, TEMP_02, REG_ID, REG_DATE)
+            VALUES(#codeId#, #codeName#, CASE WHEN ISNULL(#parentId#, '') = '' THEN NULL ELSE #parentId# END, 
+                         #description#, #displaySeq#, #plantId#, #useYn#, #temp1#, #temp2#, #LoginedUserID#, convert(varchar, #Now#, 120))
+        ]]>
+		</insert>
+
+		<update id="SYS100_UPDATE">
+			<![CDATA[
+            UPDATE e3_code SET 
+                CODE_NAME=#codeName#
+                , DESCRIPTION=#description#
+                , DISPLAY_SEQ=#displaySeq#
+                                 , PLANT_ID = #plantId#
+                                 , USE_YN = #useYn#
+                                 , TEMP_01 = #temp1#
+                                 , TEMP_02 = #temp2#
+                , MOD_ID=#LoginedUserID#
+                , MOD_DATE=convert(varchar, #Now#, 120)
+            WHERE 1=1
+        ]]>
+			<isNotNull property="codeClassId">
+				<isNotEmpty property="codeClassId">
+					<![CDATA[
+            AND CODE_CLASS_ID = #codeClassId#
+            ]]>
+				</isNotEmpty>
+			</isNotNull>
+			<![CDATA[
+            AND CODE_ID = #codeId#
+        ]]>
+		</update>
+
+		<delete id="SYS100_DELETE">
+			<![CDATA[
+                DELETE FROM E3_CODE
+                WHERE 1=1
+            ]]>
+			<isNotNull property="codeClassId">
+				<isNotEmpty property="codeClassId">
+					<![CDATA[
+            AND CODE_CLASS_ID = #codeClassId#
+            ]]>
+				</isNotEmpty>
+			</isNotNull>
+			<![CDATA[
+        AND CODE_ID = #codeId#
+                 AND PLANT_ID = #plantId#
+        ]]>
+		</delete>
+
+	</statements>
+</sqlMap>

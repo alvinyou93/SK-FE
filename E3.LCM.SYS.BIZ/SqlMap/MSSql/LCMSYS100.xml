@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.LCM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="LCMSYS100_LOGIN">
+        <![CDATA[
+            SELECT [PLANT_ID],[EMP_ID],[EMP_TEL_NO],[EMP_NM],[CRTIC_NO], 0 FAIL_CNT
+            FROM [SE_TA_EMP] 
+            WHERE 1=1
+			      AND EMP_NM = #EMP_NM#
+			      AND EMP_TEL_NO = #EMP_TEL_NO#
+            AND ISNULL(ACCESS_POSSIBLE_YN, 'APPR_N') != 'APPR_X'
+        ]]>
+		</select>
+
+    <update id="LCMSYS100_LOGIN_FAIL">
+      <![CDATA[
+        UPDATE [SE_TA_EMP] SET FAIL_CNT = ISNULL(FAIL_CNT, 0) + 1
+        WHERE 1=1
+			    AND EMP_NM = #EMP_NM#
+			    AND EMP_TEL_NO = #EMP_TEL_NO#
+      ]]>
+    </update>
+
+    <update id="LCMSYS100_LOGIN_SUCCESS">
+      <![CDATA[
+        UPDATE [SE_TA_EMP] SET FAIL_CNT = 0
+        WHERE 1=1
+			    AND EMP_NM = #EMP_NM#
+			    AND EMP_TEL_NO = #EMP_TEL_NO#
+      ]]>
+    </update>
+	</statements>
+</sqlMap>

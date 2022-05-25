@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WEB_SMS_INSERT">
+			<![CDATA[
+            INSERT INTO [dbo].[flag_msg]
+                       ([CMID]
+                       ,[MSG_TYPE]
+                       ,[REQUEST_TIME]
+                       ,[SEND_TIME]
+                       ,[DEST_PHONE]
+                       ,[SEND_PHONE]
+                       ,[MSG_BODY]
+                       ,[USER1]
+		               )
+				VALUES (CONVERT(VARCHAR(20), GETDATE(), 112) + REPLACE(CONVERT(VARCHAR(12), GETDATE(), 114), ':', '') + #companyType# + #sysType#
+				       ,#msgType#
+					   ,GETDATE()
+					   ,GETDATE()
+					   ,#phoneNumber#
+					   ,#sendPhoneNumber#					   
+					   ,#msgData#					   
+				       ,#companyType#
+						)
+	   ]]>
+		</select>
+	</statements>
+</sqlMap>

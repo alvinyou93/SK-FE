@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WEB950_SELECT">
+			<![CDATA[
+			select '누계' SUM_TOTAL
+, count(reg_dt) AS  REG_CNT
+, count(SAFE_EDU_CMPLT_DT) AS SAFE_CNT
+, (select sum(tt1.doc_cnt) 
+from (
+	select case when t1.cnt = t2.cnt then 1 else 0 end doc_cnt
+	from (
+	 select emp_id, accp_gb, count(*) cnt
+	   from SE_TA_ATTC_FILE
+	   group by plant_id, ta_id, accp_gb, emp_id
+		 ) T1 inner join (  select accp_gb, count(*) cnt  from SE_TA_ATTC_DOC_MAN
+	   group by accp_gb) T2 on T1.ACCP_GB = t2.ACCP_GB
+   ) tt1) AS DOC_CNT
+, count(ACCESS_POSSIBLE_DT) AS POS_CNT
+ From SE_TA_EMP a
+			]]>
+		</select>
+
+	</statements>
+</sqlMap>

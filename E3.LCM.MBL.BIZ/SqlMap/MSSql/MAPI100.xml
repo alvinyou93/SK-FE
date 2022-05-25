@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.LCM.MBL.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="MAPI100_SELECT_ACCOUNT_INFO">
+			<![CDATA[
+          SELECT [EMP_ID]
+              ,[EMP_TEL_NO]
+              ,[EMP_NM]
+              ,[PLANT_ID]
+              ,(SELECT [CODE_NAME] FROM [E3_CODE] WHERE [PARENT_ID] = 'PLANTID' AND [CODE_ID]=E.[PLANT_ID]) PLANT_NAME
+              ,[ACCESS_GB]
+              ,[SMS_SND_DT]
+              ,[PRIVACY_CONSENT_DT]
+              ,[SAFE_EDU_CMPLT_YN]
+              ,[SAFE_EDU_CMPLT_DT]
+              ,[PASS_YN]
+              ,[PASS_SCORE]
+              ,[PASS_DT]
+              ,[ACCESS_POSSIBLE_YN]
+              ,[ACCESS_POSSIBLE_DT]
+              ,[BLOCK_YN]
+              ,[BP_HIGHT]
+              ,[BP_LOW]
+              ,[ADDR]
+              ,[BIRTH_DT]
+              ,CASE LEN(CAST(ISNULL(ID_PHOTO, '') AS VARCHAR(100))) WHEN 0 THEN 'N' ELSE 'Y' END SAJIN
+              ,(SELECT [TA_CODE] FROM [SE_TA_EMP_EXCEL] WHERE [UPLOAD_SEQ]=(SELECT MAX([UPLOAD_SEQ]) FROM [SE_TA_EMP_EXCEL] WHERE [EMP_ID]=#EMP_ID#)) TA_CODE
+          FROM [SE_TA_EMP] E
+          WHERE [EMP_ID] = #EMP_ID#
+      ]]>
+		</select>
+    
+    <select id="MAPI100_SELECT_ACCOUNT_COMPANY">
+      <![CDATA[
+          SELECT EXC.[TA_SUB]
+                ,EXC.[REL_DEPT_CD]
+                ,EXC.[EMP_ID]
+                ,EXC.[CMP_ID]
+	              ,CMP.CMP_NM
+                ,ISNULL(EXC.[UPT_DT], EXC.[REG_DT]) RDT
+          FROM [SE_TA_EMP_EXCEL] EXC INNER JOIN [SE_TA_EMP] EMP 
+	            ON (EXC.PLANT_ID=EMP.PLANT_ID AND EXC.ACCESS_GB=EMP.ACCESS_GB AND EXC.EMP_ID=EMP.EMP_ID)
+	          LEFT OUTER JOIN SE_TA_CMP CMP ON (EXC.CMP_ID=CMP.CMP_ID)
+          WHERE EXC.EMP_ID = #EMP_ID#
+          ORDER BY EXC.[CMP_ID]
+      ]]>
+    </select>
+		
+		<update id="MAPI100_ALLOW_PRIVACY">
+		  <![CDATA[
+          UPDATE SE_TA_EMP SET 
+		        PRIVACY_CONSENT_DT = CONVERT(VARCHAR, GETDATE(), 120) 
+		      WHERE EMP_ID = #EMP_ID#
+      ]]>
+		</update>
+
+    <update id="MAPI100_ALLOW_FACE_PHOTO">
+      <![CDATA[
+          UPDATE SE_TA_EMP SET 
+		        ID_PHOTO = #ID_PHOTO#
+            ,OPTIONDATAS = #OPTIONDATAS#
+		      WHERE EMP_ID = #EMP_ID#
+      ]]>
+    </update>
+
+    <select id="MAPI100_SELECT_FACE_PHOTO">
+      <![CDATA[
+        SELECT ID_PHOTO FROM SE_TA_EMP WHERE EMP_ID = #EMP_ID#
+      ]]>
+    </select>
+		
+		<select id="MAPI100_SELECT_USER">
+			<![CDATA[
+          SELECT [EMP_ID]
+              ,[EMP_TEL_NO]
+              ,[EMP_NM]
+              ,[PLANT_ID]
+              ,(SELECT [CODE_NAME] FROM [E3_CODE] WHERE [PARENT_ID] = 'PLANTID' AND [CODE_ID]=E.[PLANT_ID]) PLANT_NAME
+              ,[ACCESS_GB]
+              ,[SMS_SND_DT]
+              ,[PRIVACY_CONSENT_DT]
+              ,[SAFE_EDU_CMPLT_YN]
+              ,[SAFE_EDU_CMPLT_DT]
+              ,[PASS_YN]
+              ,[PASS_SCORE]
+              ,[PASS_DT]
+              ,[ACCESS_POSSIBLE_YN]
+              ,[ACCESS_POSSIBLE_DT]
+              ,[BLOCK_YN]
+              ,[BP_HIGHT]
+              ,[BP_LOW]
+              ,[ADDR]
+              ,[BIRTH_DT]
+              ,CASE LEN(CAST(ISNULL(ID_PHOTO, '') AS VARCHAR(100))) WHEN 0 THEN 'N' ELSE 'Y' END SAJIN
+              ,(SELECT [TA_CODE] FROM [SE_TA_EMP_EXCEL] WHERE [UPLOAD_SEQ]=(SELECT MAX([UPLOAD_SEQ]) FROM [SE_TA_EMP_EXCEL] WHERE [EMP_ID]=#EMP_ID#)) TA_CODE
+			        ,[OPTIONDATAS]
+          FROM [SE_TA_EMP] E
+          WHERE EMP_ID = #EMP_ID#
+      ]]>
+		</select>
+
+    <select id="MAPI100_SAFE_SUBJECT">
+      <![CDATA[
+        SELECT PLANT_ID, EDU_MTRL_ID, L_CLOUD_FILE_ID, EDU_MTRL_TYPE, EDU_MTRL_NM, ORDR, FILE_PATH, USE_YN
+        FROM SE_TA_EDU
+        WHERE PLANT_ID=#PLANT_ID#
+	        AND USE_YN='Y'
+      ]]>
+    </select>
+
+    <select id="MAPI100_SAFE_SUBJECT_QUIZ">
+      <![CDATA[
+        SELECT QUIZ_ID,PLANT_ID,EDU_MTRL_ID,SDDN_QUIZ_ORDR,QUIZ_SENTENCE,ANSWER_1,ANSWER_2,ANSWER_3,ANSWER_4,RIGHT_ANSWER,SDDN_QUIZ_TIME
+        FROM SE_TA_QUIZ
+        WHERE PLANT_ID=#PLANT_ID#
+          AND EDU_MTRL_ID=#EDU_MTRL_ID#
+	        AND USE_YN='Y'
+        ORDER BY EDU_MTRL_ID, SDDN_QUIZ_TIME, SDDN_QUIZ_ORDR ASC
+      ]]>
+    </select>
+
+    <update id="MAPI100_ALLOW_SAFE_SUBJECT">
+      <![CDATA[
+        UPDATE SE_TA_EMP SET 
+            SAFE_EDU_CMPLT_YN = #SAFE_EDU_CMPLT_YN#
+		        , SAFE_EDU_CMPLT_DT = CONVERT(VARCHAR, GETDATE(), 120) 
+		    WHERE EMP_ID = #EMP_ID#
+      ]]>
+    </update>
+
+    
+    
+    <select id="MAPI100_EXAM_SENTENCE">
+      <![CDATA[
+        SELECT PLANT_ID, EXAM_TYPE, question, a, b, c, d, 10 point
+		        , ROW_NUMBER() OVER(ORDER BY EXAM_TYPE ASC) AS id
+            , CASE sol WHEN 1 THEN 'a' WHEN 2 THEN 'b' WHEN 3 THEN 'c' WHEN 4 THEN 'd' ELSE 'a' END sol
+        FROM (
+            SELECT TOP (10) PLANT_ID, EXAM_TYPE, EXAM_ID, EXAM_SENTENCE question
+                , ANSWER_1 a, ANSWER_2 b, ANSWER_3 c, ANSWER_4 d, RIGHT_ANSWER sol, ORDR, 10 point
+            FROM SE_TA_EXAM
+            WHERE PLANT_ID=#PLANT_ID#
+                AND USE_YN='Y'
+                AND EXAM_TYPE = (SELECT TOP 1 EXAM_TYPE FROM (SELECT EXAM_TYPE, COUNT(EXAM_ID) CNT FROM SE_TA_EXAM WHERE PLANT_ID='PLNT100' AND USE_YN='Y' GROUP BY EXAM_TYPE HAVING COUNT(EXAM_ID) >= 10) A ORDER BY NEWID())
+            ORDER BY NEWID()
+        ) A
+      ]]>
+    </select>
+
+    <update id="MAPI100_ALLOW_EXAM_SENTENCE">
+      <![CDATA[
+          UPDATE SE_TA_EMP SET 
+            PASS_YN = #PASS_YN#
+            , PASS_SCORE = #PASS_SCORE#
+		        , PASS_DT = CONVERT(VARCHAR, GETDATE(), 120) 
+		      WHERE EMP_ID = #EMP_ID#
+      ]]>
+    </update>
+
+    <update id="MAPI100_DISALLOW_EXAM_SENTENCE">
+      <![CDATA[
+          UPDATE SE_TA_EMP SET 
+            SAFE_EDU_CMPLT_YN = #PASS_YN#
+		        , SAFE_EDU_CMPLT_DT = CONVERT(VARCHAR, GETDATE(), 120) 
+            , PASS_YN = #PASS_YN#
+            , PASS_SCORE = #PASS_SCORE#
+		        , PASS_DT = CONVERT(VARCHAR, GETDATE(), 120) 
+		      WHERE EMP_ID = #EMP_ID#
+      ]]>
+    </update>
+    
+    
+
+    <select id="MAPI100_SELECT_FILES_TYPE">
+      <![CDATA[
+          SELECT FILE_TYPE, FILE_NAME FROM SE_TA_ATTC_DOC_MAN F
+          WHERE PLANT_ID = #PLANT_ID#
+            AND TA_ID = #TA_ID#
+            AND ACCP_GB = #ACCP_GB#
+            AND USE_YN = 'Y'
+        ]]>
+    </select>
+
+    <insert id="MAPI100_INSERT_FILES_TYPE">
+      <![CDATA[
+          INSERT INTO SE_TA_ATTC_FILE (PLANT_ID, TA_ID, ACCP_GB, EMP_ID, FILE_TYPE, REV, UPLOAD_FILE, REAL_FILE_NM, FILE_APPR_YN, REG_DT, LST_YN)
+          VALUES (#PLANT_ID#, #TA_ID#, #ACCP_GB#, #EMP_ID#, #FILE_TYPE#
+          , (SELECT ISNULL(MAX(R.REV), 0) + 1 FROM SE_TA_ATTC_FILE R WHERE R.PLANT_ID=#PLANT_ID# AND TA_ID=#TA_ID# AND ACCP_GB=#ACCP_GB# AND EMP_ID=#EMP_ID# AND FILE_TYPE=#FILE_TYPE#)
+          , #UPLOAD_FILE#, #REAL_FILE_NM#, 'FILE_STATE_2', GETDATE(), 'Y')
+      ]]>
+    </insert>
+
+    <delete id="MAPI100_DELETE_FILE_TYPE">
+      <![CDATA[
+        DELETE FROM SE_TA_ATTC_FILE
+          WHERE PLANT_ID = #PLANT_ID#
+            AND TA_ID = #TA_ID#
+            AND ACCP_GB = #ACCP_GB#
+            AND EMP_ID = #EMP_ID#
+            AND FILE_TYPE = #FILE_TYPE#
+      ]]>
+    </delete>
+
+    <select id="MAPI100_SELECT_FILES">
+      <![CDATA[
+          WITH TMP AS (
+	          SELECT FILE_TYPE, REV, REAL_FILE_NM, REAL_FILE_DT, REG_DT, FILE_APPR_YN, FILE_APPR_DT, LST_YN
+	          FROM SE_TA_ATTC_FILE
+	          WHERE PLANT_ID=#PLANT_ID#
+		          AND TA_ID=#TA_ID#
+		          AND ACCP_GB=#ACCP_GB#
+		          AND EMP_ID=#EMP_ID#
+          )
+          SELECT M.FILE_TYPE, M.REV, M.REAL_FILE_NM, M.REAL_FILE_DT, M.REG_DT, M.FILE_APPR_YN, M.FILE_APPR_DT, M.LST_YN
+          FROM TMP M
+          INNER JOIN (SELECT A.FILE_TYPE, MAX(A.REV) REV FROM TMP A GROUP BY FILE_TYPE) L 
+	          ON ( L.FILE_TYPE = M.FILE_TYPE AND L.REV=M.REV)
+      ]]>
+    </select>
+
+    <select id="MAPI100_SELECT_FILE_DOWNLOAD">
+      <![CDATA[
+          WITH TMP AS (
+	          SELECT [FILE_ID], FILE_TYPE, REV
+	          FROM SE_TA_ATTC_FILE
+	          WHERE PLANT_ID=#PLANT_ID#
+		          AND TA_ID=#TA_ID#
+		          AND ACCP_GB=#ACCP_GB#
+		          AND EMP_ID=#EMP_ID#
+		          AND FILE_TYPE=#FILE_TYPE#
+		          AND LST_YN='Y'
+          )
+          SELECT M.[FILE_ID], M.FILE_TYPE, M.REV, M.UPLOAD_FILE, M.REAL_FILE_NM
+          FROM [SE_TA_ATTC_FILE] M
+          INNER JOIN (SELECT A.[FILE_ID], A.FILE_TYPE, MAX(A.REV) REV FROM TMP A GROUP BY [FILE_ID], FILE_TYPE) L 
+	          ON ( L.[FILE_ID]=M.[FILE_ID] AND L.FILE_TYPE = M.FILE_TYPE AND L.REV=M.REV)
+      ]]>
+    </select>
+
+    <select id="MAPI100_ALLOW_FILES">
+      <![CDATA[
+      WITH TMP AS (
+	      SELECT FILE_TYPE, REV, REAL_FILE_NM, REAL_FILE_DT, REG_DT, FILE_APPR_YN, FILE_APPR_DT, LST_YN
+	      FROM SE_TA_ATTC_FILE
+	      WHERE PLANT_ID = #PLANT_ID#
+            AND TA_ID = #TA_ID#
+            AND ACCP_GB = #ACCP_GB#
+		        AND EMP_ID = #EMP_ID#
+      ),
+      CODE AS (
+	      SELECT PLANT_ID, TA_ID, ACCP_GB, FILE_TYPE FROM SE_TA_ATTC_DOC_MAN
+	      WHERE PLANT_ID = #PLANT_ID#
+            AND TA_ID = #TA_ID#
+            AND ACCP_GB = #ACCP_GB#
+            AND USE_YN = 'Y'
+      )
+      SELECT FILE_TYPE, REAL_FILE_NM, REAL_FILE_DT, REG_DT, DATEDIFF(MM, GETDATE(), REG_DT) DIF, FCHK, ACHK
+      FROM (
+	      SELECT C.FILE_TYPE, F.REAL_FILE_NM, F.REAL_FILE_DT, F.REG_DT
+		      , CASE LEN(ISNULL(F.REAL_FILE_NM, '')) WHEN 0 THEN 0 ELSE 1 END FCHK
+		      , CASE ISNULL(F.FILE_APPR_YN, 'N') WHEN 'FILE_STATE_3' THEN 1 ELSE 0 END ACHK
+	      FROM CODE C
+	      LEFT OUTER JOIN (
+		      SELECT M.FILE_TYPE, M.REAL_FILE_NM, M.REAL_FILE_DT, M.REG_DT, M.FILE_APPR_YN, M.FILE_APPR_DT, M.LST_YN
+		      FROM TMP M
+		      INNER JOIN (SELECT A.FILE_TYPE, MAX(A.REV) REV FROM TMP A GROUP BY FILE_TYPE) L 
+			      ON ( L.FILE_TYPE = M.FILE_TYPE AND L.REV=M.REV)
+	      ) F ON (C.FILE_TYPE = F.FILE_TYPE)
+      ) R
+      ]]>
+    </select>
+
+    <select id="MAPI100_DEVICE_LIST">
+      <![CDATA[
+        SELECT D.[PLANT_ID]
+	        ,D.[FACT_CD]
+	        ,D.[SERIALNO]
+	        ,D.[IPADDR]
+        FROM [SE_TA_FACEDETECT] D
+        INNER JOIN ( SELECT [PLANT_ID] FROM [SE_TA_EMP_EXCEL] WHERE EMP_ID=#EMP_ID# ) E
+        ON (D.PLANT_ID=E.PLANT_ID)
+        WHERE [USE_YN]='Y'
+        ORDER BY NEWID()
+      ]]>
+    </select>
+	</statements>
+</sqlMap>

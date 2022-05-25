@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+    <statements>
+      <select id="SYS120_SELECT">
+        <![CDATA[
+          SELECT USER_ID 
+	          , USER_NAME 
+	          , USER_PASSWORD 
+	          , USER_EMAIL
+	          , USE_YN
+            , REG_ID
+            , REG_DATE 
+            , MOD_ID 
+            , MOD_DATE 
+            , PASSWORD_CHANGE_YN 
+            , PASSWORD_CHANGE_DATE 
+            , FAIL_CNT
+          FROM E3_USER
+          WHERE USER_ID LIKE CONCAT(CONCAT('%', #userId#), '%')
+          AND   USER_NAME LIKE CONCAT(CONCAT('%', #userName#), '%')
+        ]]>
+        <isNotNull property="use_yn">
+          <isNotEmpty property="use_yn">
+            <![CDATA[
+            AND USE_YN = #use_yn#
+          ]]>
+          </isNotEmpty>
+        </isNotNull>
+        <![CDATA[
+        ORDER BY USER_NAME, USER_ID ASC
+      ]]>
+      </select>
+
+      <select id="SYS120_USER_COUNT">
+        <![CDATA[
+          SELECT COUNT(*) AS CNT
+          FROM E3_USER
+          WHERE USER_ID = #userId#
+        ]]>
+      </select>
+
+      <insert id="SYS120_INSERT">
+        <![CDATA[
+          INSERT INTO E3_USER (USER_ID, USER_NAME, USER_PASSWORD, USER_EMAIL, USE_YN, REG_ID, REG_DATE, EXPIRY_DATE)
+          VALUES(#userId#, #userName#, #userPassword#, #userEmail#, #useYn#, #LoginedUserID#, SYSDATE, TO_DATE(#expiryDate#, 'YYYY-MM-DD HH24:MI:SS'))
+        ]]>
+      </insert>
+
+      <update id="SYS120_UPDATE">
+        <![CDATA[
+          UPDATE E3_USER
+            SET USER_NAME= #userName#
+              , USER_EMAIL= #userEmail#
+              , USE_YN= #useYn#
+              , MOD_ID= #LoginedUserID#
+              , MOD_DATE= SYSDATE
+              , EXPIRY_DATE= TO_DATE(#expiryDate#, 'YYYY-MM-DD HH24:MI:SS')
+          WHERE USER_ID = #userId#
+        ]]>
+      </update>
+
+      <delete id="SYS120_DELETE">
+        <![CDATA[
+          DELETE FROM E3_USER 
+          WHERE USER_ID = #userId#
+        ]]>
+      </delete>
+
+      <update id="SYS120_INITPASSWORD">
+        <![CDATA[
+          UPDATE E3_USER
+            SET FAIL_CNT = 0
+            , PASSWORD_CHANGE_YN = 'N'
+            , USER_PASSWORD = #password#
+            , MOD_DATE = SYSDATE
+          WHERE USER_ID = #userId#
+        ]]>
+      </update>
+      
+    </statements>
+</sqlMap>

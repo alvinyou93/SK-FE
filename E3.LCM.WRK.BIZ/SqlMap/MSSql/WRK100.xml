@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.LCM.WRK.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+  <statements>
+	<select id="WRK100_SELECT_JOB">
+    <![CDATA[
+        SELECT CODE_ID AS JOB_ID
+              ,CODE_NAME AS JOB_NM
+			  ,PLANT_ID
+          FROM E3_CODE
+         WHERE 1=1
+           AND PARENT_ID = 'JOB_KND'
+           AND USE_YN = 'Y'
+      ]]>
+      <isNotNull property="PLANT_ID">
+        <isNotEmpty property="PLANT_ID">
+          <![CDATA[
+		   AND PLANT_ID = #PLANT_ID#
+              ]]>
+        </isNotEmpty>
+      </isNotNull>
+      <isNotNull property="JOB_ID">
+        <isNotEmpty property="JOB_ID">
+          <![CDATA[
+		   AND CODE_ID = #JOB_ID#
+              ]]>
+        </isNotEmpty>
+      </isNotNull>
+    </select>
+	  ORDER BY DISPLAY_SEQ
+
+	  <select id="WRK100_SELECT_AUTH">
+      <![CDATA[
+         SELECT CASE WHEN AU.JOB_ID IS NULL THEN 0
+			        ELSE 1
+			    END AS CHK
+              , AU.JOB_ID
+		      , A.PLANT_ID 
+              , A.AUTHORITY_ID
+              , A.AUTHORITY_NAME 
+              , A.AUTHORITY_DESC
+              , A.USE_YN
+        FROM E3_AUTH A
+          LEFT OUTER JOIN WK_JOB_AUTH_MAPPING AU ON A.PLANT_ID = AU.PLANT_ID AND A.AUTHORITY_ID = AU.AUTHORITY_ID AND JOB_ID = #JOB_ID#
+	   WHERE A.PLANT_ID = #PLANT_ID#
+	     AND A.USE_YN = 'Y'   
+      ]]>
+    </select>
+
+    <insert id="WRK100_INSERT_AUTH">
+      <![CDATA[
+        INSERT INTO [dbo].[WK_JOB_AUTH_MAPPING]
+                   ([PLANT_ID]
+                   ,[JOB_ID]
+                   ,[AUTHORITY_ID]
+                   ,[REG_ID]
+                   ,[REG_DATE]
+                    )
+            VALUES(
+		          #PLANT_ID#
+			    , #JOB_ID#
+			    , #AUTHORITY_ID#				
+				, #LoginedUserID#
+				, GETDATE()
+				)
+      ]]>
+    </insert>
+
+    <delete id="WRK100_DELETE_AUTH">
+      <![CDATA[
+        DELETE FROM WK_JOB_AUTH_MAPPING
+        WHERE PLANT_ID = #PLANT_ID#
+		  AND JOB_ID = #JOB_ID#
+      ]]>
+    </delete>
+    
+	  <insert id="WRK100_AUTHCOPY_INSERT">
+		  <![CDATA[
+        INSERT INTO E3_USER_AUTH_MAPPING (USER_ID, AUTHORITY_ID, USE_YN, REG_ID, REG_DATE)
+        SELECT #userId#
+              , AUTHORITY_ID
+              , USE_YN
+              , #LoginedUserID#
+              , convert(varchar, #Now#, 120)
+        FROM E3_USER_AUTH_MAPPING 
+        WHERE USER_ID = #copyUserId#
+		  ]]>
+	  </insert>
+    
+  </statements>
+</sqlMap>

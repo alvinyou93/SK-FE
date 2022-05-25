@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+	<statements>
+
+		<select id="SYS240_COUNT">
+			<![CDATA[
+				SELECT COUNT(*) AS CNT
+		  	    FROM E3_CUSTOMER
+			    WHERE CUSTOMER_ID = #customerId#
+			]]>
+		</select>
+
+		<select id="SYS240_SELECT">
+			<![CDATA[
+				SELECT 
+					CUSTOMER_ID
+					, CUSTOMER_TYPE
+					, (select code_name from E3_CODE a where a.code_id = c.CUSTOMER_TYPE) as CUSTOMER_TYPE_NAME 
+					, CUSTOMER_NAME
+					, POSTAL_CODE
+					, ADDRESS1
+					, ADDRESS2
+					, USE_YN
+					, ETC
+					, PLANT_ID
+					, (select code_name from E3_CODE a where a.code_id = c.PLANT_ID) as PLANT_NAME 
+					, DEPART_ID
+					, (select code_name from E3_CODE a where a.code_id = c.DEPART_ID) as DEPART_NAME
+					, CUSTOMER_OWNER
+					, CUSTOMER_PHONE
+				FROM E3_CUSTOMER c
+				WHERE 1=1
+			]]>
+			<isNotNull property="searchCustomerId">
+				<isNotEmpty property="searchCustomerId">
+				<![CDATA[
+				AND CUSTOMER_ID LIKE CONCAT(CONCAT('%', #searchCustomerId#), '%')
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="searchCustomerType">
+				<isNotEmpty property="searchCustomerType">
+				<![CDATA[
+				AND CUSTOMER_TYPE LIKE CONCAT(CONCAT('%', #searchCustomerType#), '%')
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="searchCustomerName">
+				<isNotEmpty property="searchCustomerName">
+				<![CDATA[
+				AND CUSTOMER_NAME LIKE CONCAT(CONCAT('%', #searchCustomerName#), '%')
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="searchUseYn">
+				<isNotEmpty property="searchUseYn">
+				<![CDATA[
+				AND USE_YN LIKE CONCAT(CONCAT('%', #searchUseYn#), '%')
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			<![CDATA[
+				ORDER BY CUSTOMER_NAME, CUSTOMER_ID ASC
+			]]>
+		</select>
+
+		<insert id="SYS240_INSERT">
+			<![CDATA[
+            INSERT INTO E3_CUSTOMER 
+				(CUSTOMER_ID, CUSTOMER_TYPE, CUSTOMER_NAME, ADDRESS1, ADDRESS2, ETC, USE_YN,
+				POSTAL_CODE, CUSTOMER_OWNER, CUSTOMER_PHONE, PLANT_ID, DEPART_ID, REG_ID, REG_DATE)
+            VALUES 
+				(#customerId#, #customerType#, #customerName#, #address1#, #address2#, #etc#, #useYn#,
+				#postalCode#, #customerOwner#, #customerPhone#, #plantId#, #departId#, #LoginedUserID#, GETDATE())
+		  ]]>
+		</insert>
+
+		<update id="SYS240_UPDATE">
+			<![CDATA[
+		    UPDATE E3_CUSTOMER
+				  SET CUSTOMER_TYPE = #customerType#
+				  , CUSTOMER_NAME = #customerName#
+				  , ADDRESS1 = #address1#
+				  , ADDRESS2 = #address2#
+				  , ETC = #etc#
+				  , POSTAL_CODE = #postalCode#
+				  , CUSTOMER_OWNER = #customerOwner#
+				  , CUSTOMER_PHONE = #customerPhone#
+				  , PLANT_ID = #plantId#
+				  , DEPART_ID = #departId#
+				  , USE_YN = #useYn#
+				  , MOD_ID = #LoginedUserID#
+				  , MOD_DATE = GETDATE()
+			  WHERE CUSTOMER_ID = #customerId#
+		  ]]>
+		</update>
+	</statements>
+</sqlMap>

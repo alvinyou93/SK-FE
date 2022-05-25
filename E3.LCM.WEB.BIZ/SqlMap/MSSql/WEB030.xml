@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WEB030_EDU_DOC_COUNT">
+			<![CDATA[
+			SELECT 
+				COUNT(1) CNT
+			FROM SE_TA_EDU A			
+			WHERE 1 = 1
+			AND PLANT_ID = #PLANT_ID#
+			AND EDU_MTRL_ID = #EDU_MTRL_ID#			
+			]]>
+		</select>
+
+		<select id="WEB030_SELECT">
+			<![CDATA[
+			SELECT
+				  PLANT_ID			/*사업장*/
+				, EDU_MTRL_ID		/*교육자료ID(SEQ)*/
+				, L_CLOUD_FILE_ID   /*L-CLOUD 파일 ID*/
+				, EDU_MTRL_TYPE		/*교육자료유형(동영상,파일)*/
+				, EDU_MTRL_NM		/*교육자료명*/
+				, ORDR				/*순서*/
+				, FILE_PATH			/*저장경로*/
+				, USE_YN			/*사용여부*/
+				, REG_ID			/*등록자ID*/
+				, REG_DT			/*등록일시*/
+				, UPT_ID			/*변경자ID*/
+				, UPT_DT			/*변경일시*/
+				, FILE_GB
+			FROM SE_TA_EDU A		/*교육자료관리*/
+			WHERE 1 = 1
+
+			]]>
+			<isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					<![CDATA[
+				AND A.PLANT_ID = #PLANT_ID#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="DOC_NM">
+				<isNotEmpty property="DOC_NM">
+					<![CDATA[
+				AND A.EDU_MTRL_NM LIKE '%' +  #DOC_NM# + '%'
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="USE_YN">
+				<isNotEmpty property="USE_YN">
+					<![CDATA[
+				AND A.USE_YN = #USE_YN#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			ORDER BY A.PLANT_ID, A.EDU_MTRL_ID
+		</select>
+		
+		<insert id="WEB030_INSERT">
+        <![CDATA[
+				UPDATE SE_TA_EDU
+				SET USE_YN = (CASE WHEN #USE_YN# = 'Y' THEN 'N' ELSE USE_YN END)
+				WHERE PLANT_ID = #PLANT_ID#
+				
+				INSERT INTO SE_TA_EDU
+				( PLANT_ID    /*사업장*/
+				, EDU_MTRL_ID    /*교육자료ID(SEQ)*/				
+				, EDU_MTRL_TYPE    /*교육자료유형(동영상,파일)*/
+				, EDU_MTRL_NM    /*교육자료명*/
+				, ORDR    /*순서*/
+				, FILE_PATH    /*저장경로*/
+				, USE_YN    /*사용여부*/
+				, REG_ID    /*등록자ID*/
+				, REG_DT    /*등록일시*/
+				, UPT_ID    /*변경자ID*/
+				, UPT_DT    /*변경일시*/
+				) VALUES 
+				(
+				  #PLANT_ID#    /*사업장*/
+				, (SELECT ISNULL((SELECT MAX(convert (int, EDU_MTRL_ID)) + 1 FROM SE_TA_EDU WHERE PLANT_ID = #PLANT_ID#), 1))    /*교육자료ID(SEQ)*/				
+				, (CASE WHEN #FILE_NM# LIKE '%.PDF' THEN 'DOC' ELSE 'MOV' END )    /*교육자료유형(동영상,파일)*/
+				, #EDU_MTRL_NM#    /*교육자료명*/
+				, #ORDR#    /*순서*/
+				, ISNULL( #FILE_NM#, '')    /*저장경로*/
+				, #USE_YN#    /*사용여부*/
+				, #LoginedUserID#    /*REG_ID*/
+				, GETDATE()    /*REG_DT*/
+				, #LoginedUserID#    /*UPT_ID*/
+				, GETDATE()    /*UPT_DT*/
+				)
+            ]]>
+      </insert>
+
+      <update id="WEB030_UPDATE">
+        <![CDATA[
+			UPDATE SE_TA_EDU
+			SET USE_YN = CASE WHEN #USE_YN# = 'Y' THEN 'N' ELSE USE_YN END
+			WHERE PLANT_ID = #PLANT_ID#
+			AND EDU_MTRL_ID != #EDU_MTRL_ID#
+				
+			UPDATE SE_TA_EDU
+			SET
+			 EDU_MTRL_TYPE = (CASE WHEN #FILE_NM# LIKE '%.PDF' THEN 'DOC' ELSE 'MOV' END ) /*교육자료유형(동영상,파일)*/
+			,EDU_MTRL_NM = #EDU_MTRL_NM#    /*교육자료명*/
+			,ORDR = #ORDR#    /*순서*/
+			,FILE_PATH = (CASE WHEN ISNULL(#FILE_NM#, '') = ''  THEN FILE_PATH ELSE #FILE_NM# END)     /*저장경로*/
+			,USE_YN = #USE_YN#    /*사용여부*/			
+			,UPT_ID = #LoginedUserID#    /*변경자ID*/
+			,UPT_DT = GETDATE()     /*변경일시*/  
+			WHERE 1 = 1
+			AND PLANT_ID = #PLANT_ID#
+			AND EDU_MTRL_ID = #EDU_MTRL_ID#
+            ]]>        
+      </update>
+
+		<delete id="WEB030_DELETE">
+        <![CDATA[
+                DELETE FROM SE_TA_EDU
+                WHERE 1 = 1
+			AND PLANT_ID = #PLANT_ID#
+			AND EDU_MTRL_ID = #EDU_MTRL_ID#
+            ]]>        
+		</delete>
+
+		<select id="WEB030_QUIZ_COUNT">
+			<![CDATA[
+			SELECT COUNT(1) CNT
+			  FROM SE_TA_QUIZ
+			  WHERE PLANT_ID = #PLANT_ID#
+			  AND EDU_MTRL_ID = #EDU_MTRL_ID#
+			]]>
+		</select>
+		
+	</statements>
+</sqlMap>

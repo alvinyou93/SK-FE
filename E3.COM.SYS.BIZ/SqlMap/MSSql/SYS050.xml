@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="SYS050_SELECT_BUTTONS">
+			<![CDATA[
+				SELECT DISTINCT BTN_TYPE
+				FROM E3_CFG_BUTTON B
+					INNER JOIN (
+		
+						SELECT B.AUTHORITY_ID, B.MENU_ID, B.BTN_ID
+						FROM E3_AUTH_MENU_BTN_MAPPING B 
+							INNER JOIN (
+								SELECT AUTHORITY_ID, MENU_ID
+								FROM E3_AUTH_MENU_MAPPING
+								WHERE AUTHORITY_ID IN (SELECT AUTHORITY_ID FROM E3_USER_AUTH_MAPPING WHERE USER_ID=#LoginedUserID#)
+							) R
+							ON (B.AUTHORITY_ID=R.AUTHORITY_ID AND B.MENU_ID=R.MENU_ID)
+						WHERE B.USE_YN='Y'
+						AND B.MENU_ID=#MENU_ID#
+					) R
+					ON (B.BTN_ID=R.BTN_ID)
+				WHERE B.USE_YN='Y'
+				ORDER BY BTN_TYPE ASC
+			]]>
+		</select>
+      
+	</statements>
+</sqlMap>

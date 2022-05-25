@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WEB040_QUIZ_COUNT">
+			<![CDATA[
+			SELECT 
+				COUNT(1) CNT
+			FROM SE_TA_QUIZ A			
+			WHERE 1 = 1
+			AND PLANT_ID = #PLANT_ID#
+			AND QUIZ_ID = #QUIZ_ID#			
+			]]>
+		</select>
+
+		<select id="WEB040_EDU_COUNT">
+			<![CDATA[
+			SELECT 
+				COUNT(1) CNT
+			FROM SE_TA_EDU A			
+			WHERE 1 = 1
+			AND PLANT_ID = #PLANT_ID#
+			AND EDU_MTRL_ID = CONVERT(INT, CONVERT(FLOAT,  #EDU_MTRL_ID#))
+			]]>
+		</select>
+
+		<select id="WEB040_EDU_DOC_SELECT">
+			<![CDATA[
+			SELECT EDU_MTRL_NM LABEL,
+				   EDU_MTRL_ID 	VALUE				
+			FROM SE_TA_EDU A			
+			WHERE 1 = 1			
+			AND EDU_MTRL_TYPE = 'MOV'			
+			]]>
+			<isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					<![CDATA[
+					AND PLANT_ID = #PLANT_ID#
+					]]>
+				</isNotEmpty>
+			</isNotNull>
+		</select>
+
+		<select id="WEB040_SELECT">
+			<![CDATA[
+			SELECT
+			  A.QUIZ_ID    /*퀴즈ID*/
+			, A.PLANT_ID    /*사업장*/
+			, A.EDU_MTRL_ID    /*교육자료ID(SEQ)*/
+			, B.EDU_MTRL_NM
+			, A.SDDN_QUIZ_ORDR    /*순번(수행시간 1, 2,3)*/
+			, A.QUIZ_SENTENCE    /*퀴즈문제*/
+			, A.ANSWER_1    /*선택지1*/
+			, A.ANSWER_2    /*선택지2*/
+			, A.ANSWER_3    /*선택지3*/
+			, A.ANSWER_4    /*선택지4*/
+			, A.RIGHT_ANSWER    /*정답*/
+			, A.USE_YN    /*사용여부*/
+			, A.SDDN_QUIZ_TIME    /*돌발퀴즈 수행시간*/
+			, A.REG_ID    /*등록자ID*/
+			, A.REG_DT    /*등록일시*/
+			, null ERR_TYPE
+			 FROM SE_TA_QUIZ A /*돌발퀴즈관리*/
+			 INNER JOIN SE_TA_EDU B ON A.EDU_MTRL_ID = B.EDU_MTRL_ID AND A.PLANT_ID = B.PLANT_ID
+			WHERE 1 = 1
+			]]>
+			<isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					<![CDATA[
+				AND A.PLANT_ID = #PLANT_ID#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="DOC_ID">
+				<isNotEmpty property="DOC_ID">
+					<![CDATA[
+				AND A.EDU_MTRL_ID = #DOC_ID#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="USE_YN">
+				<isNotEmpty property="USE_YN">
+					<![CDATA[
+				AND A.USE_YN = #USE_YN#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			ORDER BY A.PLANT_ID, A.SDDN_QUIZ_ORDR
+		</select>
+		
+		<insert id="WEB040_INSERT">
+        <![CDATA[
+				INSERT INTO SE_TA_QUIZ
+				( QUIZ_ID    /*퀴즈ID*/
+				, PLANT_ID    /*사업장*/
+				, EDU_MTRL_ID    /*교육자료ID(SEQ)*/
+				, SDDN_QUIZ_ORDR    /*순번(수행시간 1, 2,3)*/
+				, QUIZ_SENTENCE    /*퀴즈문제*/
+				, ANSWER_1    /*선택지1*/
+				, ANSWER_2    /*선택지2*/
+				, ANSWER_3    /*선택지3*/
+				, ANSWER_4    /*선택지4*/
+				, RIGHT_ANSWER    /*정답*/
+				, USE_YN    /*사용여부*/
+				, SDDN_QUIZ_TIME    /*돌발퀴즈 수행시간*/
+				, REG_ID    /*등록자ID*/
+				, REG_DT    /*등록일시*/
+				, UPT_ID    /*변경자ID*/
+				, UPT_DT    /*변경일시*/
+				) VALUES 
+				(				
+				  (SELECT ISNULL((SELECT MAX(convert (int, QUIZ_ID)) + 1 FROM SE_TA_QUIZ), 1))    /*퀴즈ID*/
+				, #PLANT_ID#    /*사업장*/
+				, CONVERT(INT, CONVERT(FLOAT,  #EDU_MTRL_ID# ))   /*교육자료ID(SEQ)*/
+				, CONVERT(INT, CONVERT(FLOAT,  #SDDN_QUIZ_ORDR#))    /*순번(수행시간 1, 2,3)*/
+				, #QUIZ_SENTENCE#    /*퀴즈문제*/
+				, #ANSWER_1#    /*선택지1*/
+				, #ANSWER_2#    /*선택지2*/
+				, #ANSWER_3#    /*선택지3*/
+				, #ANSWER_4#    /*선택지4*/
+				, CONVERT(INT, CONVERT(FLOAT,  #RIGHT_ANSWER# ))   /*정답*/
+				, ISNULL(#USE_YN#, 'Y')    /*사용여부*/
+				, CONVERT(INT, CONVERT(FLOAT, #SDDN_QUIZ_TIME#))    /*돌발퀴즈 수행시간*/
+				, #LoginedUserID#    /*REG_ID*/
+				, GETDATE()    /*REG_DT*/
+				, #LoginedUserID#    /*UPT_ID*/
+				, GETDATE()    /*UPT_DT*/
+				)
+            ]]>
+      </insert>
+
+      <update id="WEB040_UPDATE">
+        <![CDATA[
+			UPDATE SE_TA_QUIZ
+			SET			 
+			 SDDN_QUIZ_ORDR = CONVERT(INT, CONVERT(FLOAT,  #SDDN_QUIZ_ORDR#))    /*순번(수행시간 1, 2,3)*/
+			,QUIZ_SENTENCE = #QUIZ_SENTENCE#    /*퀴즈문제*/
+			,EDU_MTRL_ID =  CONVERT(INT, CONVERT(FLOAT,  #EDU_MTRL_ID# ))
+			,ANSWER_1 = #ANSWER_1#    /*선택지1*/
+			,ANSWER_2 = #ANSWER_2#    /*선택지2*/
+			,ANSWER_3 = #ANSWER_3#    /*선택지3*/
+			,ANSWER_4 = #ANSWER_4#    /*선택지4*/
+			,RIGHT_ANSWER = CONVERT(INT, CONVERT(FLOAT,  #RIGHT_ANSWER# ))   /*정답*/
+			,USE_YN = #USE_YN#    /*사용여부*/
+			,SDDN_QUIZ_TIME = CONVERT(INT, CONVERT(FLOAT,  #SDDN_QUIZ_TIME# ))   /*돌발퀴즈 수행시간*/
+			,UPT_ID = #LoginedUserID#    /*변경자ID*/
+			,UPT_DT = GETDATE()     /*변경일시*/  
+			 WHERE 1 = 1
+			 AND PLANT_ID = #PLANT_ID#
+			 AND QUIZ_ID = #QUIZ_ID#
+            ]]>        
+      </update>
+
+		<delete id="WEB040_DELETE">
+        <![CDATA[
+                DELETE FROM SE_TA_QUIZ
+                WHERE 1 = 1
+			AND PLANT_ID = #PLANT_ID#
+			AND QUIZ_ID = #QUIZ_ID#
+            ]]>        
+		</delete>
+	</statements>
+</sqlMap>

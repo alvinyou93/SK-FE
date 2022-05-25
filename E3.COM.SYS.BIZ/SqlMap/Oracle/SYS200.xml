@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+  <statements>
+	  <select id="SYS200_PROGRAM_COUNT">
+	    <![CDATA[
+		    SELECT COUNT(*) AS CNT
+		  	FROM E3_PGM
+			  WHERE PROGRAM_ID = #programId#
+	    ]]>
+	   </select>
+	   
+    <select id="SYS200_SELECT">
+      <![CDATA[
+        SELECT PLANT_ID
+	            ,PROGRAM_ID
+	            ,PROGRAM_NAME
+	            ,PROGRAM_PATH
+	            ,PROGRAM_TYPE
+	            ,PROGRAM_DESC
+				      ,ASSEMBLY_NAME
+	            ,NAMESPACE_NAME
+              ,CLASS_NAME
+	            ,USE_YN
+	            ,REG_ID
+	            ,REG_DATE
+	            ,MOD_ID
+	            ,MOD_DATE 
+            FROM E3_PGM
+		    WHERE PROGRAM_ID LIKE CONCAT(CONCAT('%', #programId#), '%')
+			  AND PROGRAM_NAME LIKE CONCAT(CONCAT('%', #programName#), '%')
+        AND CONCAT(CONCAT(PROGRAM_TYPE, PROGRAM_PATH), PROGRAM_DESC) LIKE CONCAT(CONCAT('%', #programType#), '%')
+      ]]>
+      <isNotNull property="use_yn">
+        <isNotEmpty property="use_yn">
+          <![CDATA[
+            AND USE_YN = #use_yn#
+          ]]>
+        </isNotEmpty>
+      </isNotNull>
+      <![CDATA[
+        ORDER BY PROGRAM_ID, PROGRAM_NAME, PROGRAM_PATH ASC
+      ]]>
+    </select>
+
+    <insert id="SYS200_INSERT">
+      <![CDATA[
+            INSERT INTO E3_PGM 
+            (
+               PLANT_ID
+	            ,PROGRAM_ID 
+	            ,PROGRAM_NAME 
+	            ,PROGRAM_PATH 
+	            ,PROGRAM_TYPE
+	            ,PROGRAM_DESC
+				      ,ASSEMBLY_NAME
+	            ,NAMESPACE_NAME
+              ,CLASS_NAME
+	            ,USE_YN
+	            ,REG_ID
+	            ,REG_DATE
+            )
+            VALUES
+            (
+               #plantId#
+	            ,#programId#
+	            ,#programName#
+	            ,#programPath#
+	            ,#programType#
+	            ,#programDesc#
+				      ,#assemblyName#
+				      ,#namespaceName#
+              ,#className#
+	            ,#useYn#
+	            ,#LoginedUserID#
+	            ,SYSDATE
+            )
+        ]]>
+    </insert>
+
+    <delete id="SYS200_DELETE">
+      <![CDATA[
+            DELETE FROM E3_PGM WHERE PROGRAM_ID = #programId#
+        ]]>
+    </delete>
+
+	<update id="SYS200_UPDATE">
+		  <![CDATA[
+			  UPDATE E3_PGM
+				  SET PLANT_ID = #plantId#
+				  ,PROGRAM_NAME = #programName#
+				  ,PROGRAM_PATH = #programPath#
+				  ,PROGRAM_TYPE = #programType#
+				  ,PROGRAM_DESC = #programDesc#
+				  ,ASSEMBLY_NAME = #assemblyName#
+				  ,NAMESPACE_NAME = #namespaceName#
+          ,CLASS_NAME=#className#
+				  ,USE_YN = #useYn#
+				  ,MOD_ID = #LoginedUserID#
+				  ,MOD_DATE = SYSDATE
+			  WHERE PROGRAM_ID = #programId#
+		  ]]>
+	</update>
+
+    <select id="SYS200_PGM_SELECT">
+      <![CDATA[
+          SELECT  PROGRAM_ID AS value
+	          ,PROGRAM_NAME AS label
+          FROM E3_PGM
+          WHERE PROGRAM_TYPE = 'WEB'
+          AND   USE_YN = 'Y'
+        ]]>
+    </select>
+  
+  </statements>
+</sqlMap>

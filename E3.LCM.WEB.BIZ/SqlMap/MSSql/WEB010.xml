@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WEB010_SELECT">
+			<![CDATA[
+			SELECT
+				  CMP_ID		/*회사ID*/				
+				, CMP_NM		/*회사명*/
+				, CMP_NO		/*사업자번호*/
+				, MNGR_NM		/*담당자명*/				
+				, DBO.FN_MASK_TELNO(MNGR_TEL_NO) MNGR_TEL_NO_MSK				
+				, MNGR_TEL_NO
+				, MNGR_EMAIL    /*MAIL*/
+				, REG_ID		/*REG_ID*/
+				, REG_DT		/*REG_DT*/
+				, UPT_ID		/*UPT_ID*/
+				, UPT_DT		/*UPT_DT*/		
+				, NULL ERR_TYPE
+			FROM SE_TA_CMP A /*출입회사 관리*/
+			WHERE 1 = 1
+			]]>
+			<isNotNull property="cmpNm">
+				<isNotEmpty property="cmpNm">
+					<![CDATA[
+					AND CMP_NM LIKE '%'+ #cmpNm# + '%'
+					]]>
+				</isNotEmpty>
+			</isNotNull>
+		  ORDER BY CMP_ID DESC
+		</select>
+
+		<select id="WEB010_CMPID_COUNT">
+			<![CDATA[
+			SELECT
+				 COUNT(1) CNT
+			FROM SE_TA_CMP A /*출입회사 관리*/
+			WHERE 1 = 1
+			AND CMP_ID = #CMP_ID#
+			]]> 
+		</select>
+		
+		<insert id="WEB010_INSERT">
+        <![CDATA[
+				INSERT INTO SE_TA_CMP
+				(  CMP_NM		/*회사명*/
+				, CMP_NO		/*사업자번호*/
+				, MNGR_NM		/*담당자명*/
+				, MNGR_TEL_NO   /*연락처*/
+				, MNGR_EMAIL    /*EAMIL*/
+				, REG_ID		/*REG_ID*/
+				, REG_DT		/*REG_DT*/
+				, UPT_ID		/*UPT_ID*/
+				, UPT_DT		/*UPT_DT*/				
+				) VALUES 
+				(
+				  #CMP_NM#			/*회사명*/
+				, #CMP_NO#			/*사업자번호*/
+				, #MNGR_NM#			/*담당자명*/
+				, #MNGR_TEL_NO#		/*연락처*/
+				, #MNGR_EMAIL#		/*EAMIL*/
+				, #LoginedUserID#	/*REG_ID*/
+				, GETDATE()			/*REG_DT*/
+				, #LoginedUserID#   /*UPT_ID*/
+				, GETDATE()			/*UPT_DT*/				
+				)
+
+            ]]>
+      </insert>
+
+      <update id="WEB010_UPDATE">
+        <![CDATA[
+				UPDATE SE_TA_CMP
+				SET
+				 CMP_NM = #CMP_NM#				/*회사명*/
+				,CMP_NO = #CMP_NO#				/*사업자번호*/
+				,MNGR_NM = #MNGR_NM#			/*담당자명*/
+				,MNGR_TEL_NO = #MNGR_TEL_NO#    /*연락처*/
+				,MNGR_EMAIL = #MNGR_EMAIL#		/*EAMIL*/				
+				,UPT_ID = #LoginedUserID#		/*UPT_ID*/
+				,UPT_DT = GETDATE()				/*UPT_DT*/				
+				 WHERE 1 = 1
+				 AND CMP_ID = #CMP_ID#
+            ]]>        
+      </update>
+
+		<update id="WEB010_UPDATE_BY_CMPNO">
+			<![CDATA[
+				UPDATE SE_TA_CMP
+				SET
+				 CMP_NM = #CMP_NM#				/*회사명*/				
+				,MNGR_NM = #MNGR_NM#			/*담당자명*/
+				,MNGR_TEL_NO = #MNGR_TEL_NO#    /*연락처*/
+				,MNGR_EMAIL = #MNGR_EMAIL#		/*EAMIL*/				
+				,UPT_ID = #LoginedUserID#		/*UPT_ID*/
+				,UPT_DT = GETDATE()				/*UPT_DT*/				
+				 WHERE 1 = 1
+				 AND CMP_NO = #CMP_NO#
+            ]]>
+		</update>
+
+      <delete id="WEB010_DELETE">
+        <![CDATA[
+                DELETE FROM SE_TA_CMP
+                WHERE 1=1
+				AND CMP_ID = #CMP_ID#
+            ]]>        
+      </delete>
+
+		<select id="WEB010_CMP_NO_COUNT">
+			<![CDATA[
+			SELECT
+				 COUNT(1) CNT
+			FROM SE_TA_CMP A /*출입회사 관리*/
+			WHERE 1 = 1
+			AND dbo.func_getNumeric(CMP_NO)= dbo.func_getNumeric(#CMP_NO#)
+			]]>
+		</select>
+
+		<select id="WEB010_SELECT_USE_CNT">
+			<![CDATA[
+			SELECT COUNT(1) CNT FROM SE_TA_EMP_EXCEL 
+			WHERE CMP_ID =  #CMP_ID#			
+			]]>
+		</select>
+		
+	</statements>
+</sqlMap>

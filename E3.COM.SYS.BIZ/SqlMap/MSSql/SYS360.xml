@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+  <statements>
+	  <select id="SYS360_COUNT">
+	    <![CDATA[
+		    SELECT COUNT(*) AS CNT
+			  FROM SE_TA_FACEDETECT
+        WHERE PLANT_ID = #PLANT_ID# AND FACT_CD = #FACT_CD# AND SERIALNO = #SERIALNO#
+	    ]]>
+	   </select>
+	   
+    <select id="SYS360_SELECT">
+      <![CDATA[
+        SELECT PLANT_ID, FACT_CD, SERIALNO, IPADDR, [LOCATION], RMK, USE_YN, REG_ID, REG_DATE, MOD_ID, MOD_DATE 
+        FROM SE_TA_FACEDETECT
+        WHERE 1=1
+      ]]>
+		<isNotNull property="PLANT_ID">
+			<isNotEmpty property="PLANT_ID">
+			  <![CDATA[
+            AND PLANT_ID = #PLANT_ID#
+        ]]>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="FACT_CD">
+			<isNotEmpty property="FACT_CD">
+			<![CDATA[
+            AND FACT_CD = #FACT_CD#
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="SERIALNO">
+			<isNotEmpty property="SERIALNO">
+			<![CDATA[
+            AND SERIALNO LIKE CONCAT(CONCAT('%', #SERIALNO#), '%')
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="SEARCHVALUE">
+			<isNotEmpty property="SEARCHVALUE">
+			<![CDATA[
+            AND CONCAT(IPADDR, ISNULL([LOCATION], '')) LIKE CONCAT(CONCAT('%', #SEARCHVALUE#), '%')
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+      <isNotNull property="use_yn">
+        <isNotEmpty property="use_yn">
+          <![CDATA[
+            AND USE_YN = #USE_YN#
+          ]]>
+        </isNotEmpty>
+      </isNotNull>
+      <![CDATA[
+        ORDER BY PLANT_ID, FACT_CD, SERIALNO ASC
+      ]]>
+    </select>
+
+    <insert id="SYS360_INSERT">
+      <![CDATA[
+          INSERT INTO SE_TA_FACEDETECT 
+              (PLANT_ID, FACT_CD, SERIALNO, IPADDR, [LOCATION], RMK, USE_YN, REG_ID) 
+          VALUES 
+            (#PLANT_ID#, #FACT_CD#, #SERIALNO#, #IPADDR#, #LOCATION#, #RMK#, #USE_YN#, #LoginedUserID#) 
+        ]]>
+    </insert>
+
+    <delete id="SYS360_DELETE">
+      <![CDATA[
+					DELETE FROM SE_TA_FACEDETECT
+          WHERE PLANT_ID = #PLANT_ID# AND FACT_CD = #FACT_CD# AND SERIALNO = #SERIALNO#
+      ]]>
+    </delete>
+
+	<update id="SYS360_UPDATE">
+		  <![CDATA[
+        UPDATE SE_TA_FACEDETECT SET
+            IPADDR        = #IPADDR#,
+            [LOCATION]    = #LOCATION#,
+            RMK           = #RMK#,
+            USE_YN        = #USE_YN#,
+            MOD_ID        = #LoginedUserID#,
+            MOD_DATE      = GETDATE()
+        WHERE PLANT_ID = #PLANT_ID# AND FACT_CD = #FACT_CD# AND SERIALNO = #SERIALNO#
+		  ]]>
+	</update>
+  
+  </statements>
+</sqlMap>

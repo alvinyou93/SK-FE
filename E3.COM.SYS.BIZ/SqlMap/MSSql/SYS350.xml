@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+  <statements>
+	  <select id="SYS350_COUNT">
+	    <![CDATA[
+		    SELECT COUNT(*) AS CNT
+		  	FROM E3_BARCODEPRINTER
+			  WHERE MACADDR = #macAddr#
+        AND IPADDR = #ipAddr#
+        AND SERVICEPORT = #servicePort#
+	    ]]>
+	   </select>
+	   
+    <select id="SYS350_SELECT">
+      <![CDATA[
+        SELECT PLANT_ID, MACADDR, IPADDR, SERVICEPORT, 
+            MODELINFO, LABELTYPE, LOCATIONINFO, DESCRIPTION, 
+            USE_YN, REG_ID, REG_DATE, MOD_ID, MOD_DATE
+        FROM E3_BARCODEPRINTER
+        WHERE 1=1
+      ]]>
+		<isNotNull property="ipInfo">
+			<isNotEmpty property="ipInfo">
+			<![CDATA[
+            AND CONCAT(CONCAT(MACADDR, IPADDR), SERVICEPORT)  LIKE CONCAT(CONCAT('%', #ipInfo#), '%')
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="printModel">
+			<isNotEmpty property="printModel">
+			<![CDATA[
+            AND MODELINFO LIKE CONCAT(CONCAT('%', #printModel#), '%')
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+		<isNotNull property="printInfo">
+			<isNotEmpty property="printInfo">
+			<![CDATA[
+            AND CONCAT(CONCAT(LABELTYPE, ISNULL(LOCATIONINFO, '')), ISNULL(DESCRIPTION, '')) LIKE CONCAT(CONCAT('%', #printInfo#), '%')
+            ]]>
+			</isNotEmpty>
+		</isNotNull>
+      <isNotNull property="use_yn">
+        <isNotEmpty property="use_yn">
+          <![CDATA[
+            AND USE_YN = #use_yn#
+          ]]>
+        </isNotEmpty>
+      </isNotNull>
+      <![CDATA[
+        ORDER BY IPADDR, SERVICEPORT, MODELINFO ASC
+      ]]>
+    </select>
+
+    <insert id="SYS350_INSERT">
+      <![CDATA[
+            INSERT INTO E3_BARCODEPRINTER (
+                PLANT_ID,
+                MACADDR, 
+                IPADDR, 
+                SERVICEPORT, 
+                MODELINFO, 
+                LABELTYPE, 
+                LOCATIONINFO, 
+                DESCRIPTION, 
+                USE_YN, 
+                REG_ID) 
+            VALUES (
+                #plantId#
+                ,#macAddr#
+                ,#ipAddr#
+                ,#servicePort#
+                ,#modelInfo#
+                ,#labelType#
+                ,#locationinfo#
+                ,#description# 
+                ,#useYn#
+                ,#LoginedUserID#
+            )
+        ]]>
+    </insert>
+
+    <delete id="SYS350_DELETE">
+      <![CDATA[
+					DELETE FROM E3_BARCODEPRINTER
+					WHERE MACADDR = #macAddr#
+						AND IPADDR = #ipAddr#
+						AND SERVICEPORT = #servicePort#
+        ]]>
+    </delete>
+
+	<update id="SYS350_UPDATE">
+		  <![CDATA[
+        UPDATE E3_BARCODEPRINTER SET
+            PLANT_ID     = #plantId#,
+            MODELINFO    = #modelInfo#,
+            LABELTYPE    = #labelType#,
+            LOCATIONINFO = #locationinfo#,
+            DESCRIPTION  = #description#,
+            USE_YN       = #useYn#,
+            MOD_ID       = #LoginedUserID#,
+            MOD_DATE     = GETDATE()
+        WHERE MACADDR = #macAddr#
+				  AND IPADDR = #ipAddr#
+				  AND SERVICEPORT = #servicePort#
+		  ]]>
+	</update>
+  
+  </statements>
+</sqlMap>

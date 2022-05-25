@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BDD690BC-25F6-4F95-A9AC-712475573D9A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>E3.LCM.WEB.BIZ</RootNamespace>
+    <AssemblyName>E3.LCM.WEB.BIZ</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="E3.Common">
+      <HintPath>C:\E3_COMPONENTS_SAFETYONEQ\Refs\E3.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="E3.Framework">
+      <HintPath>C:\E3_COMPONENTS_SAFETYONEQ\Refs\E3.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="IBatisNet.Common">
+      <HintPath>C:\E3_COMPONENTS_SAFETYONEQ\Refs\IBatisNet.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="IBatisNet.DataMapper">
+      <HintPath>C:\E3_COMPONENTS_SAFETYONEQ\Refs\IBatisNet.DataMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\E3_COMPONENTS_SAFETYONEQ\Refs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MAPIWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="MAPI_CMV2_Models.cs" />
+    <Compile Include="WEB_950.cs" />
+    <Compile Include="WEB_070.cs" />
+    <Compile Include="WEB_SMS.cs" />
+    <Compile Include="WEB_040.cs" />
+    <Compile Include="WEB_050.cs" />
+    <Compile Include="WEB_080.cs" />
+    <Compile Include="WEB_060.cs" />
+    <Compile Include="WEB_030.cs" />
+    <Compile Include="Web090.cs" />
+    <Compile Include="WEB_020.cs" />
+    <Compile Include="WEB_010.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SqlMap\MSSql\WEB950.xml" />
+    <Content Include="SqlMap\MSSql\WEB070.xml" />
+    <Content Include="SqlMap\MSSql\WEB060.xml" />
+    <Content Include="SqlMap\MSSql\WEBSMS.xml" />
+    <Content Include="SqlMap\MSSql\WEB050.xml" />
+    <Content Include="SqlMap\MSSql\WEB040.xml" />
+    <Content Include="SqlMap\MSSql\WEB030.xml" />
+    <Content Include="SqlMap\MSSql\WEB020.xml" />
+    <Content Include="SqlMap\MSSql\WEB010.xml" />
+    <Content Include="SqlMap\MSSql\WEB090.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="SqlMap\Oracle\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>IF NOT EXIST "C:\E3_COMPONENTS_SAFETYONEQ\SqlMap" (
+    echo "================ 폴더 생성 성공 ================"
+    mkdir "C:\E3_COMPONENTS_SAFETYONEQ\SqlMap
+)
+
+IF NOT EXIST "C:\E3_COMPONENTS_SAFETYONEQ\BizComponent" (
+    echo "================ 폴더 생성 성공 ================"
+    mkdir "C:\E3_COMPONENTS_SAFETYONEQ\BizComponent
+)
+
+xcopy "$(ProjectDir)SqlMap\*.*" "C:\E3_COMPONENTS_SAFETYONEQ\SqlMap" /e /k /y
+copy "$(TargetDir)$(TargetName).*" "C:\E3_COMPONENTS_SAFETYONEQ\BizComponent" /y</PostBuildEvent>
+  </PropertyGroup>
+</Project>

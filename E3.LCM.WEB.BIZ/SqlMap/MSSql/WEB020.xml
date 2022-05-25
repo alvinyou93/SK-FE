@@ -1,0 +1,741 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<sqlMap namespace="E3.COM.SYS.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+	<statements>
+		<select id="WEB020_SELECT_CMP_COMBO">
+			<![CDATA[
+			SELECT 
+				CMP_ID VALUE
+			   ,CMP_NM LABEL
+			FROM SE_TA_CMP A			
+			WHERE 1 = 1
+			ORDER BY CMP_NM
+			]]>
+		</select>
+
+		<select id="WEB020_SELECT">
+			<![CDATA[
+			SELECT 
+				 'false' TMP
+				,A.PLANT_ID
+				,D.CODE_NAME PLANT_NM
+				,A.FACT_CD
+				,E.CODE_NAME FACT_NM
+				,A.TA_CODE
+				,F.CODE_NAME TA_CODE_NM
+				,A.TA_YEAR
+				,A.UPLOAD_SEQ
+				,A.TA_SUB
+				,A.REL_DEPT_CD
+				,G.CODE_NAME REL_DEPT_NM
+				,A.EMP_ID
+				,A.CMP_ID
+				,C.CMP_NM
+				,B.EMP_NM
+				,B.EMP_TEL_NO
+				,DBO.FN_MASK_TELNO2(B.EMP_TEL_NO) EMP_TEL_NO_DISP
+				,DBO.FN_MASK_TELNO(B.EMP_TEL_NO) EMP_TEL_NO_MSK
+				,A.ACCESS_GB				
+				,H.CODE_NAME ACCESS_GB_NM
+				,B.RMK
+				,A.REG_ID
+				,A.REG_DT
+				,A.UPT_ID
+				,A.UPT_DT	
+				,B.CRTIC_NO
+				,B.SAFE_EDU_CMPLT_YN
+				,CASE WHEN B.SAFE_EDU_CMPLT_YN = 'Y' THEN CONVERT(CHAR(19), B.SAFE_EDU_CMPLT_DT, 20) ELSE NULL END SAFE_EDU_CMPLT_DT				
+				,B.PASS_YN
+				,B.PASS_SCORE
+				,CASE WHEN B.PASS_YN = 'Y' THEN CONVERT(CHAR(19), B.PASS_DT, 20) ELSE NULL END PASS_DT
+				,CASE WHEN ID_PHOTO IS NULL THEN 'N' ELSE 'Y' END PHOTO_YN
+				,CONVERT(CHAR(19), B.PRIVACY_CONSENT_DT, 20) PRIVACY_CONSENT_DT
+				,CONVERT(CHAR(19), B.SMS_SND_DT, 20) SMS_SND_DT	
+				,CONVERT(CHAR(19), B.FILE_SMS_SEND, 20) FILE_SMS_SEND				
+				,ISNULL(B.ACCESS_POSSIBLE_YN, 'APPR_N') ACCESS_POSSIBLE_YN
+				,ISNULL(B.ACCESS_POSSIBLE_YN, 'APPR_N') ORG_ACCESS_POSSIBLE_YN
+				,ISNULL(I.CODE_NAME, '미승인') ACCESS_POSSIBLE_YN_NM
+				,CASE WHEN ISNULL(B.ACCESS_POSSIBLE_YN, 'APPR_N') = 'APPR_N' THEN '5'
+					  WHEN ISNULL(B.ACCESS_POSSIBLE_YN, 'APPR_N') = 'APPR_Y' THEN '3'
+					  WHEN ISNULL(B.ACCESS_POSSIBLE_YN, 'APPR_N') = 'APPR_X' THEN '1' END  IMG_ACC_APPR
+				,ISNULL(B.BLOCK_YN, 'N') BLOCK_YN
+				,B.ADDR
+				,CASE WHEN ISNULL(B.BIRTH_DT, '') = '' THEN NULL ELSE left(REPLACE(B.BIRTH_DT, '.', ''),4)+'.'+substring(REPLACE(B.BIRTH_DT, '.', ''),5,2)+'.'+substring(REPLACE(B.BIRTH_DT, '.', ''),7,2) END BIRTH_DT
+				,CONVERT(VARCHAR(10) , ISNULL(CN.ATTCH_CNT, 0) ) + '/' + CONVERT(VARCHAR(10), ISNULL(CN2.CNT, 0)) DOC_CNT
+				,CONVERT(VARCHAR(10) ,ISNULL(CN.APPR_DOC_CNT, 0) ) + '/' + CONVERT(VARCHAR(10), ISNULL(CN2.CNT, 0)) DOC_APPR_CNT
+			FROM SE_TA_EMP_EXCEL A
+			LEFT OUTER JOIN SE_TA_EMP B ON A.EMP_ID = B.EMP_ID
+			LEFT OUTER JOIN SE_TA_CMP C ON A.CMP_ID = C.CMP_ID 
+			LEFT OUTER JOIN E3_CODE   D ON A.PLANT_ID  = D.CODE_ID AND D.PARENT_ID = 'PLANTID'
+			LEFT OUTER JOIN E3_CODE   E ON A.FACT_CD   = E.CODE_ID AND E.PARENT_ID = 'FACT_CD'
+			LEFT OUTER JOIN E3_CODE   F ON A.TA_CODE   = F.CODE_ID AND F.PARENT_ID = 'TA_MNG'
+			LEFT OUTER JOIN E3_CODE   G ON A.REL_DEPT_CD = G.CODE_ID AND G.PARENT_ID = 'DEPARTID'
+			LEFT OUTER JOIN E3_CODE   H ON A.ACCESS_GB = H.CODE_ID AND H.PARENT_ID = 'ACCP_GB'
+			LEFT OUTER JOIN E3_CODE   I ON B.ACCESS_POSSIBLE_YN = I.CODE_ID 
+			LEFT OUTER JOIN (
+				SELECT 
+				A.EMP_ID, A.ACCP_GB,  COUNT(1) ATTCH_CNT , SUM(CASE WHEN FILE_APPR_YN = 'FILE_STATE_3' THEN 1 ELSE 0 END ) APPR_DOC_CNT
+				FROM SE_TA_ATTC_FILE A				
+				GROUP BY A.EMP_ID, A.ACCP_GB
+			) CN ON B.EMP_ID = CN.EMP_ID
+			LEFT OUTER JOIN (SELECT ACCP_GB, COUNT(1) CNT FROM SE_TA_ATTC_DOC_MAN GROUP BY ACCP_GB) CN2 ON CN2.ACCP_GB = B.ACCESS_GB
+			WHERE 1 = 1
+			]]>
+			<isNotNull property="PLANT_ID">
+				<isNotEmpty property="PLANT_ID">
+					<![CDATA[
+				AND A.PLANT_ID = #PLANT_ID#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="FACT_CD">
+				<isNotEmpty property="FACT_CD">
+					<![CDATA[
+				AND A.FACT_CD = #FACT_CD#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			
+			<isNotNull property="TA_CD">
+				<isNotEmpty property="TA_CD">
+					<![CDATA[
+				AND A.TA_CODE = #TA_CD#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="SUB_TA_NM">
+				<isNotEmpty property="SUB_TA_NM">
+					<![CDATA[
+				AND A.TA_SUB LIKE '%' + #SUB_TA_NM# + '%'
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="CMP_NM">
+				<isNotEmpty property="CMP_NM">
+					<![CDATA[
+				AND C.CMP_NM LIKE '%' + #CMP_NM# + '%'
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			
+			<isNotNull property="REL_DEPT_CD">
+				<isNotEmpty property="REL_DEPT_CD">
+					<![CDATA[
+				AND A.REL_DEPT_CD =  #REL_DEPT_CD# 
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="SEND_YN">
+				<isNotEmpty property="SEND_YN">
+					<![CDATA[
+				AND ISNULL(B.SMS_SND_DT, '') =  CASE WHEN #SEND_YN# = 'N' THEN '' ELSE B.SMS_SND_DT END
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			
+			<isNotNull property="EMP_NM">
+				<isNotEmpty property="EMP_NM">
+					<![CDATA[
+				AND B.EMP_NM LIKE '%' + #EMP_NM# + '%'
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+
+			<isNotNull property="ACCP_YN">
+				<isNotEmpty property="ACCP_YN">
+					<![CDATA[
+				AND ISNULL(B.ACCESS_POSSIBLE_YN, 'APPR_N') = #ACCP_YN#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			<isNotNull property="PHOTO_YN">
+				<isNotEmpty property="PHOTO_YN">
+					<![CDATA[
+				AND (CASE WHEN ID_PHOTO IS NULL THEN 'N' ELSE 'Y' END) = #PHOTO_YN#
+				]]>
+				</isNotEmpty>
+			</isNotNull>
+			ORDER BY A.UPLOAD_SEQ
+		</select>
+
+		<select id="WEB020_EXCEL_COUNT">
+			<![CDATA[
+			SELECT
+				 COUNT(1) CNT, UPLOAD_SEQ
+			FROM SE_TA_EMP_EXCEL A /*출입자 엑셀업로드 관리*/
+			WHERE 1 = 1
+			  AND PLANT_ID		= #PLANT_ID#
+			  AND FACT_CD		= #FACT_CD#
+			  AND TA_CODE		= #TA_CODE#
+			  AND TA_SUB		= #TA_SUB#
+			  AND EMP_TEL_NO	= #EMP_TEL_NO#
+			GROUP BY UPLOAD_SEQ
+			]]> 
+		</select>
+
+		<select id="WEB020_EXCEL_TEL_NM_COUNT">
+			<![CDATA[
+			SELECT
+				 COUNT(1) CNT, EMP_TEL_NO, PLANT_ID, EMP_NM
+			FROM SE_TA_EMP_EXCEL A /*출입자 엑셀업로드 관리*/
+			WHERE 1 = 1
+			  AND PLANT_ID		= #PLANT_ID#			
+			  AND EMP_TEL_NO	= #EMP_TEL_NO# 
+			  AND EMP_NM !		= #EMP_NM#
+			GROUP BY PLANT_ID, EMP_TEL_NO, EMP_NM			
+			]]>
+		</select>
+
+		<select id="WEB020_EXCEL_ACC_GB_COUNT">
+			<![CDATA[
+			SELECT * FROM SE_TA_EMP_EXCEL A
+			WHERE A.EMP_ID IN (SELECT EMP_ID FROM SE_TA_EMP_EXCEL 
+								WHERE PLANT_ID = #PLANT_ID#						
+								AND EMP_TEL_NO = #EMP_TEL_NO# 
+							   )
+			AND A.ACCESS_GB != #ACCESS_GB#			
+			]]>
+		</select>
+		
+		
+		<insert id="WEB020_INSERT">
+        <![CDATA[
+				INSERT INTO SE_TA_EMP_EXCEL
+				(PLANT_ID    /*사업장*/
+				, FACT_CD	 /*공장*/
+				, TA_CODE    /*TA코드*/
+				, UPLOAD_SEQ    /*업로드 순번*/
+				, TA_SUB    /*공사*/				
+				, EMP_ID    /*사용자 ID(SEQ 전화번호)*/
+				, CMP_ID    /*회사ID*/
+				, EMP_NM    /*이름*/
+				, EMP_TEL_NO    /*연락처*/
+				, ACCESS_GB    /*출입구분(일반/차량)*/				
+				, REL_DEPT_CD /*연관부서*/
+				, REG_ID    /*REG_ID*/
+				, REG_DT    /*REG_DT*/
+				, UPT_ID    /*UPT_ID*/
+				, UPT_DT    /*UPT_DT*/
+				) VALUES
+				(
+				  #PLANT_ID#    /*사업장*/
+				, #FACT_CD#		/*공장*/
+				, #TA_CODE#    /*TA코드*/
+				, (SELECT ISNULL((SELECT MAX(convert (int, UPLOAD_SEQ)) + 1 FROM SE_TA_EMP_EXCEL), 1)) /*업로드 순번*/
+				, #TA_SUB#    /*공사*/
+				
+				, (SELECT 
+					CASE 
+						WHEN (SELECT TOP 1 EMP_ID from SE_TA_EMP_EXCEL WHERE PLANT_ID =  #PLANT_ID# AND EMP_TEL_NO =#EMP_TEL_NO# ) IS NOT NULL 
+						THEN (SELECT TOP 1 EMP_ID from SE_TA_EMP_EXCEL WHERE PLANT_ID =  #PLANT_ID# AND EMP_TEL_NO = #EMP_TEL_NO# )
+					ELSE 
+						CASE WHEN  (SELECT COUNT(1) EMP_ID from SE_TA_EMP ) = 0 AND (SELECT IDENT_CURRENT('SE_TA_EMP')) = 1 THEN 1
+						ELSE (SELECT IDENT_CURRENT('SE_TA_EMP') + 1) END					
+					END)   /*사용자 ID(SEQ 전화번호)*/
+					
+				, (CASE WHEN #CMP_ID# IS NULL THEN (SELECT TOP 1 CMP_ID FROM SE_TA_CMP WHERE REPLACE(CMP_NO, '-', '') = #CMP_NO#)    /*회사ID*/
+					   ELSE #CMP_ID# END )
+				, #EMP_NM#    /*이름*/
+				, #EMP_TEL_NO#    /*연락처*/
+				, #ACCESS_GB#    /*출입구분(일반/차량)*/				
+				, #REL_DEPT_CD# /*연관부서*/
+				, #LoginedUserID#    /*REG_ID*/
+				, GETDATE()    /*REG_DT*/
+				, #LoginedUserID#    /*UPT_ID*/
+				, GETDATE()    /*UPT_DT*/
+				)
+            ]]>
+      </insert>
+
+		<insert id="WEB020_UPDATE_EXCEL">
+			<![CDATA[
+				UPDATE SE_TA_EMP_EXCEL
+				SET
+				 FACT_CD = #FACT_CD#    /*공장코드*/
+				,TA_CODE = #TA_CODE#    /*TA코드*/
+				,TA_YEAR = #TA_YEAR#    /*정기보수년도*/				
+				,TA_SUB = #TA_SUB#    /*공사*/
+				,REL_DEPT_CD = #REL_DEPT_CD#    /*작업부서*/				
+				,CMP_ID = (SELECT TOP 1 CMP_ID FROM SE_TA_CMP WHERE REPLACE(CMP_NO, '-', '') = #CMP_NO#)     /*회사ID*/
+				,EMP_NM = #EMP_NM#    /*이름*/				
+				,ACCESS_GB = #ACCESS_GB#    /*출입구분(일반/차량)*/
+				,UPT_ID = #UPT_ID#    /*변경자ID*/
+				,UPT_DT = #UPT_DT#    /*변경일시*/   
+				 WHERE 1 = 1
+				 AND PLANT_ID =  #PLANT_ID#
+				 AND TA_CODE = #TA_CODE#
+				 AND TA_SUB  = #TA_SUB#
+				 AND EMP_TEL_NO = #EMP_TEL_NO#
+            ]]>
+		</insert>
+
+      <update id="WEB020_UPDATE">
+        <![CDATA[
+				UPDATE SE_TA_EMP_EXCEL
+					SET
+					 CMP_ID			= #CMP_ID#		/*회사ID*/
+					,FACT_CD		= #FACT_CD#
+					,EMP_NM			= #EMP_NM#		/*이름*/
+					,ACCESS_GB		= #ACCESS_GB#   /*출입구분(일반/차량)*/
+					,REL_DEPT_CD	= #REL_DEPT_CD# 
+					,UPT_ID			= #LoginedUserID#		/*UPT_ID*/
+					,UPT_DT			= GETDATE()				/*UPT_DT*/ 					
+				 WHERE 1 = 1
+				 AND UPLOAD_SEQ = #UPLOAD_SEQ#    /*업로드 순번*/
+            ]]>        
+      </update>
+
+		<delete id="WEB020_DELETE">
+        <![CDATA[
+                DELETE FROM SE_TA_EMP_EXCEL
+                WHERE 1=1
+				AND UPLOAD_SEQ = #UPLOAD_SEQ#
+            ]]>        
+		</delete>
+		
+		<delete id="WEB020_EMP_DELETE">
+			<![CDATA[
+                DELETE FROM SE_TA_EMP
+                WHERE 1=1
+				AND PLANT_ID = #PLANT_ID#
+				AND EMP_ID = #EMP_ID#
+				AND 0 = (SELECT COUNT(1) FROM SE_TA_EMP_EXCEL WHERE PLANT_ID = #PLANT_ID# AND EMP_ID = #EMP_ID#)
+            ]]>
+		</delete>
+		
+		<select id="WEB020_CMP_NO_COUNT">
+			<![CDATA[
+			SELECT
+				 COUNT(1) CNT
+			FROM SE_TA_CMP A /*출입회사 관리*/
+			WHERE 1 = 1
+			]]>
+		</select>
+	
+		<select id="WEB020_EMP_COUNT">
+			<![CDATA[
+			SELECT
+				 EMP_ID, COUNT(1) CNT
+			FROM SE_TA_EMP_EXCEL A  
+			WHERE 1 = 1			 
+			AND PLANT_ID = #PLANT_ID#			
+			AND EMP_TEL_NO = #EMP_TEL_NO#
+			GROUP BY EMP_ID
+			]]> 
+		</select>
+
+		<select id="WEB020_EMP_COUNT2">
+			<![CDATA[
+			SELECT
+				 EMP_ID, ACCESS_POSSIBLE_YN, COUNT(1) CNT
+			FROM SE_TA_EMP A  
+			WHERE 1 = 1			 
+			AND PLANT_ID	= #PLANT_ID#
+			AND EMP_TEL_NO	= #EMP_TEL_NO#
+			GROUP BY EMP_ID, ACCESS_POSSIBLE_YN
+			]]>
+		</select>
+		
+		<insert id="WEB020_INSERT_EMP">
+			<![CDATA[
+			MERGE SE_TA_EMP A
+			USING (
+				SELECT 
+					 #EMP_ID#				EMP_ID
+					,#PLANT_ID#				PLANT_ID
+				    ,(SELECT ROUND( ( (999999 + 1) - 100000 ) * RAND() + 100000 , 0, 1)) CRTIC_NO
+				    ,#ACCESS_GB#			ACCESS_GB
+					,#BLOCK_YN#				BLOCK_YN
+					,#EMP_NM#				EMP_NM
+					,#EMP_TEL_NO#			EMP_TEL_NO
+					,#ADDR#					ADDR
+				    ,ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N')	ACCESS_POSSIBLE_YN
+					,CASE WHEN ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N') = 'APPR_Y' THEN GETDATE() ELSE NULL END ACCESS_POSSIBLE_DT 
+					,dbo.func_getNumeric(#BIRTH_DT#)  BIRTH_DT					
+				    ,#LoginedUserID#		LoginedUserID	/*REG_ID*/
+				    ,GETDATE()				REG_DT			/*REG_DT*/				    
+			) AS B ON A.PLANT_ID = B.PLANT_ID AND A.EMP_ID = B.EMP_ID 			
+			WHEN NOT MATCHED THEN  
+				INSERT (					
+				    PLANT_ID
+				   ,EMP_NM
+				   ,EMP_TEL_NO
+				   ,CRTIC_NO
+				   ,ACCESS_GB				   
+				   ,ACCESS_POSSIBLE_YN
+				   ,ACCESS_POSSIBLE_DT 
+				   ,BLOCK_YN	
+				   ,ADDR
+				   ,BIRTH_DT
+				   ,REG_ID
+				   ,REG_DT
+				   ,UPT_ID
+				   ,UPT_DT
+				) 
+				VALUES 
+				(
+					B.PLANT_ID
+				   ,B.EMP_NM
+				   ,B.EMP_TEL_NO
+				   ,B.CRTIC_NO
+				   ,B.ACCESS_GB
+				   ,B.ACCESS_POSSIBLE_YN
+				   ,B.ACCESS_POSSIBLE_DT
+				   ,'N'
+				   ,B.ADDR
+				   ,B.BIRTH_DT
+				   ,B.LoginedUserID
+				   ,B.REG_DT
+				   ,B.LoginedUserID
+				   ,B.REG_DT
+				)
+			WHEN MATCHED THEN 
+					UPDATE SET 
+						A.ACCESS_GB				= B.ACCESS_GB
+					   ,A.EMP_NM				= B.EMP_NM
+					   ,A.EMP_TEL_NO			= B.EMP_TEL_NO					   
+					   ,A.UPT_ID				= B.LoginedUserID
+					   ,A.REG_DT				= B.REG_DT
+					   ,A.ADDR					= CASE WHEN ISNULL(B.ADDR, '') != '' THEN B.ADDR ELSE A.ADDR END
+					   ,A.BIRTH_DT				= CASE WHEN ISNULL(B.BIRTH_DT, '') != '' THEN B.BIRTH_DT ELSE A.BIRTH_DT END 					   
+					   ,A.ACCESS_POSSIBLE_YN	= B.ACCESS_POSSIBLE_YN
+					   ,A.ACCESS_POSSIBLE_DT	=  CASE WHEN ISNULL(A.ACCESS_POSSIBLE_YN, 'APPR_N') != 'APPR_Y' AND ISNULL(B.ACCESS_POSSIBLE_YN, 'APPR_N') = 'APPR_Y' THEN GETDATE()  
+													    WHEN ISNULL(B.ACCESS_POSSIBLE_YN, 'APPR_N') != 'APPR_Y' THEN NULL
+													    WHEN ISNULL(A.ACCESS_POSSIBLE_YN, 'APPR_N') = 'APPR_Y' THEN A.ACCESS_POSSIBLE_DT 										   
+													    ELSE NULL END 
+					   ,A.BLOCK_YN				= CASE WHEN B.BLOCK_YN IS NULL THEN A.BLOCK_YN ELSE B.BLOCK_YN END
+				   ;
+			]]> 
+		</insert>
+
+
+		<insert id="WEB020_INSERT_EMP2">
+			<![CDATA[
+			MERGE SE_TA_EMP A
+			USING (
+				SELECT 
+					 #EMP_ID#				EMP_ID
+					,#PLANT_ID#				PLANT_ID
+				    ,(SELECT ROUND( ( (999999 + 1) - 100000 ) * RAND() + 100000 , 0, 1)) CRTIC_NO
+				    ,#ACCESS_GB#			ACCESS_GB
+					,#BLOCK_YN#				BLOCK_YN
+					,#EMP_NM#				EMP_NM
+					,#EMP_TEL_NO#			EMP_TEL_NO
+					,#ADDR#					ADDR
+				    ,ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N')	ACCESS_POSSIBLE_YN
+					,CASE WHEN ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N') = 'APPR_Y' THEN GETDATE() ELSE NULL END ACCESS_POSSIBLE_DT 
+					,dbo.func_getNumeric(#BIRTH_DT#)  BIRTH_DT					
+				    ,#LoginedUserID#		LoginedUserID	/*REG_ID*/
+				    ,GETDATE()				REG_DT			/*REG_DT*/				    
+			) AS B ON A.PLANT_ID = B.PLANT_ID AND A.EMP_ID = B.EMP_ID 			
+			WHEN NOT MATCHED THEN  
+				INSERT (					
+				    PLANT_ID
+				   ,EMP_NM
+				   ,EMP_TEL_NO
+				   ,CRTIC_NO
+				   ,ACCESS_GB				   
+				   ,ACCESS_POSSIBLE_YN
+				   ,ACCESS_POSSIBLE_DT 
+				   ,BLOCK_YN	
+				   ,ADDR
+				   ,BIRTH_DT
+				   ,REG_ID
+				   ,REG_DT
+				   ,UPT_ID
+				   ,UPT_DT
+				) 
+				VALUES 
+				(
+					B.PLANT_ID
+				   ,B.EMP_NM
+				   ,B.EMP_TEL_NO
+				   ,B.CRTIC_NO
+				   ,B.ACCESS_GB
+				   ,B.ACCESS_POSSIBLE_YN
+				   ,B.ACCESS_POSSIBLE_DT
+				   ,'N'
+				   ,B.ADDR
+				   ,B.BIRTH_DT
+				   ,B.LoginedUserID
+				   ,B.REG_DT
+				   ,B.LoginedUserID
+				   ,B.REG_DT
+				)
+			WHEN MATCHED THEN 
+					UPDATE SET 
+						A.ACCESS_GB				= B.ACCESS_GB
+					   ,A.EMP_NM				= B.EMP_NM
+					   ,A.EMP_TEL_NO			= B.EMP_TEL_NO					   
+					   ,A.UPT_ID				= B.LoginedUserID
+					   ,A.UPT_DT				= B.REG_DT
+					   ,A.ADDR					= CASE WHEN ISNULL(B.ADDR, '') != '' THEN B.ADDR ELSE A.ADDR END
+					   ,A.BIRTH_DT				= CASE WHEN ISNULL(B.BIRTH_DT, '') != '' THEN B.BIRTH_DT ELSE A.BIRTH_DT END 					   					   
+					   ,A.BLOCK_YN				= CASE WHEN B.BLOCK_YN IS NULL THEN A.BLOCK_YN ELSE B.BLOCK_YN END
+				   ;
+			]]>
+		</insert>
+		
+		<insert id="WEB020_INSERT_FILE">
+			<![CDATA[
+			INSERT INTO SE_TA_EMP
+			( 
+				  EMP_ID				/*출입자ID*/
+			) VALUES 
+			(
+				  #EMP_ID#				/*출입자ID*/
+			)		
+			]]> 
+		</insert>
+		
+		<select id="WEB020_SELECT_EMP_DTL">
+			<![CDATA[
+			SELECT 
+			    C.CODE_NAME PLANT_NM
+			  , D.CODE_NAME FACT_NM
+			  , E.CODE_NAME TA_NM
+			  , A.PLANT_ID
+			  , A.TA_CODE
+			  , A.TA_SUB
+			  , A.EMP_NM
+			  , DBO.FN_MASK_TELNO2(B.EMP_TEL_NO) EMP_TEL_NO				
+			  , A.CMP_ID
+			  , CMP.CMP_NM
+			  , B.RMK
+			  , CONVERT(CHAR(19), B.PRIVACY_CONSENT_DT, 20) PRIVACY_CONSENT_DT
+			  , CONVERT(CHAR(19), B.SAFE_EDU_CMPLT_DT, 20) SAFE_EDU_CMPLT_DT
+			  , CONVERT(CHAR(19), B.PASS_DT, 20) PASS_DT
+			  , B.ID_PHOTO
+			  , CMP.MNGR_TEL_NO
+			  , B.BP_HIGHT
+			  , B.BP_LOW
+			  , F.CODE_NAME ACCESS_GB_NM
+			  , ISNULL(B.ACCESS_POSSIBLE_YN , 'APPR_N') ACCESS_POSSIBLE_YN
+			  , B.ACCESS_POSSIBLE_DT 
+			  , A.UPLOAD_SEQ
+			  , A.EMP_ID
+			  , B.ADDR			  			  
+			  , CASE WHEN ISNULL(B.BIRTH_DT, '') = '' THEN NULL ELSE left(REPLACE(B.BIRTH_DT, '.', ''),4)+'.'+substring(REPLACE(B.BIRTH_DT, '.', ''),5,2)+'.'+substring(REPLACE(B.BIRTH_DT, '.', ''),7,2) END BIRTH_DT
+			  , B.CRTIC_NO
+			FROM SE_TA_EMP_EXCEL A
+			INNER JOIN SE_TA_EMP B ON A.EMP_ID = B.EMP_ID AND A.PLANT_ID = B.PLANT_ID
+			LEFT OUTER JOIN SE_TA_CMP CMP ON A.CMP_ID = CMP.CMP_ID
+			LEFT OUTER JOIN E3_CODE C ON A.PLANT_ID = C.CODE_ID
+			LEFT OUTER JOIN E3_CODE D ON A.FACT_CD = D.CODE_ID
+			LEFT OUTER JOIN E3_CODE E ON A.TA_CODE = E.CODE_ID
+			LEFT OUTER JOIN E3_CODE F ON A.ACCESS_GB = F.CODE_ID
+			WHERE UPLOAD_SEQ = #UPLOAD_SEQ#
+			]]>
+		</select>
+
+		<select id="WEB020_SELECT_EMP_FILE">
+			<![CDATA[
+			WITH EMP_FILE_LIST AS (
+				SELECT 
+					E.PLANT_ID, E.EMP_ID, E.ACCESS_GB, M.FILE_TYPE, M.FILE_NAME, E.FILE_SMS_SEND
+				FROM SE_TA_EMP E
+				INNER JOIN SE_TA_ATTC_DOC_MAN M ON E.ACCESS_GB = M.ACCP_GB
+			)
+			SELECT 
+				 A.FILE_TYPE
+				,D.CODE_NAME FILE_TYPE_NM
+				,B.REAL_FILE_NM REAL_FILE_NM
+				,B.FILE_APPR_DT			
+				,ISNULL(E.CODE_NAME, '미제출') FILE_APPR_YN_NM				
+				,CASE WHEN ISNULL (A.FILE_SMS_SEND, '')  = '' THEN 'N' ELSE 'Y' END FILE_SMS_SEND_YN
+				,CONVERT(CHAR(19), A.FILE_SMS_SEND, 20) FILE_SMS_SEND_DT
+				,B.FILE_ID
+				,NULL UPLOAD_FILE 
+				,ISNULL(B.FILE_APPR_YN, 'FILE_STATE_1') ORG_FILE_APPR_YN				
+				,CASE WHEN ISNULL(B.READ_YN, 'N') = 'N' THEN '1'
+					  WHEN ISNULL(B.READ_YN, 'N') = 'Y' THEN '3' END  READ_YN
+				,CASE WHEN ISNULL(B.READ_YN, 'N') = 'N' THEN '미확인'
+					  WHEN ISNULL(B.READ_YN, 'N') = 'Y' THEN '확인' END  READ_YN_NM
+			FROM EMP_FILE_LIST A
+			INNER JOIN SE_TA_EMP_EXCEL C ON A.PLANT_ID = C.PLANT_ID AND A.EMP_ID = C.EMP_ID
+			LEFT OUTER JOIN SE_TA_ATTC_FILE B ON A.PLANT_ID = B.PLANT_ID AND A.EMP_ID = B.EMP_ID AND A.FILE_TYPE = B.FILE_TYPE			
+			LEFT OUTER JOIN E3_CODE D ON A.FILE_TYPE = D.CODE_ID
+			LEFT OUTER JOIN E3_CODE E ON B.FILE_APPR_YN = E.CODE_ID
+			WHERE C.UPLOAD_SEQ = #UPLOAD_SEQ#
+			]]>
+		</select>
+		
+		<update id="WEB020_UPDATE_EMP_DTL">
+			<![CDATA[
+			UPDATE SE_TA_EMP
+			SET
+				 RMK				= #RMK#
+				,BP_HIGHT			= #BP_HIGHT#
+				,BP_LOW				= #BP_LOW#
+				,ACCESS_POSSIBLE_YN = ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N')					
+				,ACCESS_POSSIBLE_DT = CASE WHEN ISNULL(ACCESS_POSSIBLE_YN, 'APPR_N') != 'APPR_Y' AND ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N') = 'APPR_Y' THEN GETDATE()  
+										   WHEN ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N') != 'APPR_Y' THEN NULL
+										   WHEN ISNULL(ACCESS_POSSIBLE_YN, 'APPR_N') = 'APPR_Y' THEN ACCESS_POSSIBLE_DT 										   
+										   ELSE NULL END 
+				,UPT_ID				= #LoginedUserID#
+				,UPT_DT				= GETDATE()
+				,ADDR				= #ADDR#
+				,BIRTH_DT			= #BIRTH_DT#
+			WHERE 1 = 1
+			  and PLANT_ID			= #PLANT_ID#
+			  AND EMP_ID			= #EMP_ID#
+			]]>
+		</update>
+		
+		<update id="WEB020_UPDATE_EMP_DTL_LIST">
+			<![CDATA[
+			UPDATE SE_TA_EMP
+			SET
+				 ACCESS_POSSIBLE_YN = ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N')					
+				,ACCESS_POSSIBLE_DT = CASE WHEN ISNULL(ACCESS_POSSIBLE_YN, 'APPR_N') != 'APPR_Y' AND ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N') = 'APPR_Y' THEN GETDATE()  
+										   WHEN ISNULL(#ACCESS_POSSIBLE_YN#, 'APPR_N') != 'APPR_Y' THEN NULL
+										   WHEN ISNULL(ACCESS_POSSIBLE_YN, 'APPR_N') = 'APPR_Y' THEN ACCESS_POSSIBLE_DT 										   
+										   ELSE NULL END 
+				,UPT_ID				= #LoginedUserID#
+				,UPT_DT				= GETDATE()				
+			WHERE 1 = 1			  
+			  AND EMP_ID			= #EMP_ID#
+			]]>
+		</update>
+
+		<update id="WEB020_UPDATE_EMP_FILE">
+			<![CDATA[
+			UPDATE SE_TA_ATTC_FILE
+			SET
+				 FILE_APPR_DT = CASE 
+								WHEN ISNULL(#FILE_APPR_YN# , '') = '' THEN FILE_APPR_DT 
+								WHEN #FILE_APPR_YN# = 'FILE_STATE_3' THEN  GETDATE() 
+								ELSE NULL END   
+				,FILE_APPR_YN = ISNULL(#FILE_APPR_YN# , #ORG_FILE_APPR_YN# )    /*제출상태(미제출/제출/승인/반려)*/  
+			WHERE 1 = 1
+			AND FILE_ID =  #FILE_ID#
+			]]>
+		</update>
+		
+		<select id="WEB020_SELECT_DOWN_FILE">
+			<![CDATA[
+			SELECT 
+			  A.UPLOAD_FILE 
+			FROM SE_TA_ATTC_FILE A			
+			WHERE FILE_ID = #FILE_ID#
+			]]>
+		</select>
+		
+		<update id="WEB020_UPDATE_READ_YN">
+			<![CDATA[
+			UPDATE SE_TA_ATTC_FILE 
+			SET READ_YN = 'Y'
+			,READ_DT = GETDATE()
+			WHERE FILE_ID = #FILE_ID#			
+			]]>
+		</update>
+
+		<select id="WEB020_SELECT_IF_EMP_ID">
+			<![CDATA[
+			SELECT (CASE WHEN #EMP_ID# IS NULL THEN (SELECT EMP_ID FROM SE_TA_EMP_EXCEL WHERE UPLOAD_SEQ = (SELECT MAX(UPLOAD_SEQ) FROM SE_TA_EMP_EXCEL)) ELSE #EMP_ID# END ) EMP_ID
+			]]>
+		</select>
+
+		<select id="WEB020_SELECT_SMS_SND_YN">
+			<![CDATA[
+			SELECT DISTINCT 
+				  A.EMP_ID
+				, B.EMP_TEL_NO
+				, B.TA_SUB
+				, B.EMP_NM
+				, C.CODE_NAME PLANT_NM
+				, A.CRTIC_NO				
+				, CONVERT(CHAR(19), A.SMS_SND_DT, 20) SMS_SND_DT				
+				, A.ACCESS_POSSIBLE_YN
+				, A.PLANT_ID
+			FROM SE_TA_EMP A
+			INNER JOIN SE_TA_EMP_EXCEL B ON A.PLANT_ID = B.PLANT_ID AND A.EMP_ID = B.EMP_ID
+			LEFT OUTER JOIN E3_CODE C ON A.PLANT_ID = C.CODE_ID
+			WHERE 1 = 1			
+			AND A.EMP_ID = (CASE WHEN #EMP_ID# IS NULL THEN (SELECT EMP_ID FROM SE_TA_EMP_EXCEL WHERE UPLOAD_SEQ = (SELECT MAX(UPLOAD_SEQ) FROM SE_TA_EMP_EXCEL)) ELSE #EMP_ID# END )
+			AND ISNULL(A.ACCESS_POSSIBLE_YN, '') != 'APPR_X'			
+			]]>
+		</select>
+
+		<update id="WEB020_UPDATE_EMP_SMS_DT">
+			<![CDATA[
+			UPDATE SE_TA_EMP
+			SET
+				 SMS_SND_DT = GETDATE()
+			WHERE 1 = 1
+			AND EMP_ID =  #EMP_ID#
+			]]>
+		</update>
+
+		<update id="WEB020_UPDATE_FILE_EMP_SMS_DT">
+			<![CDATA[
+			UPDATE SE_TA_EMP
+			SET
+				 FILE_SMS_SEND = GETDATE()
+			WHERE 1 = 1
+			AND EMP_ID =  #EMP_ID#
+			]]>
+		</update>
+
+		<select id="WEB020_SELECT_TA_CDOE">
+			<![CDATA[
+			SELECT COUNT(1) CNT
+			FROM E3_CODE A			
+			WHERE 1 = 1		
+			AND CODE_ID = #TA_CODE#
+			]]>
+		</select>
+
+		<select id="WEB020_SELECT_EXPIRATION_DATE">
+			<![CDATA[
+			SELECT 
+				CONVERT(CHAR(8),  DATEADD(M, CONVERT(INT, A.CODE_NAME) ,  GETDATE()), 112) EXPIRATION_DATE
+				, B.EMP_NM
+				, B.EMP_TEL_NO
+			FROM E3_CODE A
+			INNER JOIN SE_TA_EMP B ON A.PLANT_ID = B.PLANT_ID
+			WHERE A.PARENT_ID = 'EXPIRATION_DATE'
+			AND B.EMP_ID = #EMP_ID#
+			]]>
+		</select>
+
+		<select id="WEB020_SELECT_MNGR_TEL_NO">
+			<![CDATA[
+			SELECT ISNULL((SELECT TOP 1 CODE_NAME FROM E3_CODE A WHERE A.PARENT_ID = 'PLNT_MNGR_TEL_NO' AND A.PLANT_ID    = #PLANT_ID#), '028294000') PLNT_MNGR_TEL_NO			
+			]]>
+		</select>
+		<select id="WEB020_SELECT_MANUAL_PATH">
+			<![CDATA[
+			SELECT ISNULL((SELECT TOP 1 CODE_NAME FROM E3_CODE A WHERE A.PARENT_ID = 'MANUAL_FILE_PATH'), '-') PATH			
+			]]>
+		</select>
+
+		<select id="WEB020_SELECT_DEVICE_LIST">
+			<![CDATA[
+			SELECT DISTINCT D.[PLANT_ID]
+				,D.[FACT_CD]
+				,D.[SERIALNO]
+				,D.[IPADDR] IPADDR
+			FROM [SE_TA_FACEDETECT] D
+			INNER JOIN ( SELECT [PLANT_ID],[FACT_CD] FROM [SE_TA_EMP_EXCEL] WHERE EMP_ID=#EMP_ID# ) E
+			ON (D.PLANT_ID=E.PLANT_ID )
+			WHERE [USE_YN]='Y' 
+		  ]]>
+		</select>
+
+		<select id="WEB020_EMP_DELETE_CNT">
+			<![CDATA[
+			SELECT
+				 COUNT(1) CNT
+			FROM SE_TA_EMP A  
+			WHERE 1 = 1
+			AND EMP_ID	= #EMP_ID#
+			]]>
+		</select>
+		
+	</statements>
+</sqlMap>

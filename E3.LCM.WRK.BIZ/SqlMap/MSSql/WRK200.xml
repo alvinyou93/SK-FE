@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<sqlMap namespace="E3.LCM.WRK.BIZ" xmlns="http://ibatis.apache.org/mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+    <statements>
+      <select id="WRK200_SELECT">
+        <![CDATA[
+        SELECT [PLANT_ID]
+              ,[TA_ID]
+              ,[FACILITY_KND]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'FACT_KND' AND CODE_ID = T1.FACILITY_KND AND USE_YN = 'Y') FACILITY_KND_NM
+              ,[STEP1_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP1_CD AND USE_YN = 'Y') STEP1_CD_NM
+              ,[STEP2_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP2_CD AND USE_YN = 'Y') STEP2_CD_NM
+              ,[STEP3_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP3_CD AND USE_YN = 'Y') STEP3_CD_NM
+              ,[STEP4_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP4_CD AND USE_YN = 'Y') STEP4_CD_NM
+              ,[STEP5_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP5_CD AND USE_YN = 'Y') STEP5_CD_NM
+              ,[STEP6_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP6_CD AND USE_YN = 'Y') STEP6_CD_NM
+              ,[STEP7_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP7_CD AND USE_YN = 'Y') STEP7_CD_NM
+              ,[STEP8_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP8_CD AND USE_YN = 'Y') STEP8_CD_NM
+              ,[STEP9_CD]
+		  	  ,(SELECT CODE_NAME FROM E3_CODE WHERE PARENT_ID = 'JOB_KND' AND CODE_ID = T1.STEP9_CD AND USE_YN = 'Y') STEP9_CD_NM
+              ,[RMK]
+              ,[REG_ID]
+              ,[REG_DATE]
+              ,[MOD_ID]
+              ,[MOD_DATE]
+          FROM [dbo].[WK_FACILITY_STEP] T1
+        ]]>
+		  WHERE 1=1
+		  <isNotNull property="PLANT_ID">
+			  <isNotEmpty property="PLANT_ID">
+		    AND PLANT_ID = #PLANT_ID#
+			  </isNotEmpty>
+		  </isNotNull>
+		  <isNotNull property="TA_ID">
+			  <isNotEmpty property="TA_ID">
+				  AND TA_ID = #TA_ID#
+			  </isNotEmpty>
+		  </isNotNull>
+		  <isNotNull property="FACILITY_KND">
+			  <isNotEmpty property="FACILITY_KND">
+				  AND FACILITY_KND = #FACILITY_KND#
+			  </isNotEmpty>
+		  </isNotNull>
+      </select>
+
+      <select id="WRK200_CHECK_CNT">
+        <![CDATA[
+          SELECT COUNT(*) AS CNT
+          FROM WK_FACILITY_STEP
+          WHERE PLANT_ID = #PLANT_ID#
+		    AND TA_ID = #TA_ID#
+		    AND FACILITY_KND = #FACILITY_KND#			
+        ]]>
+      </select>
+
+		<select id="WRK200_CHECK_EMPTY">
+			<![CDATA[
+        SELECT CASE WHEN ISNULL(#STEP2_CD#, '') = '' THEN 'FALSE' ELSE #STEP2_CD# END
+              + CASE WHEN ISNULL(#STEP3_CD#, '') = '' THEN 'FALSE' ELSE #STEP3_CD# END
+              + CASE WHEN ISNULL(#STEP4_CD#, '') = '' THEN 'FALSE' ELSE #STEP4_CD# END
+              + CASE WHEN ISNULL(#STEP5_CD#, '') = '' THEN 'FALSE' ELSE #STEP5_CD# END
+              + CASE WHEN ISNULL(#STEP6_CD#, '') = '' THEN 'FALSE' ELSE #STEP6_CD# END
+              + CASE WHEN ISNULL(#STEP7_CD#, '') = '' THEN 'FALSE' ELSE #STEP7_CD# END
+              + CASE WHEN ISNULL(#STEP8_CD#, '') = '' THEN 'FALSE' ELSE #STEP8_CD# END
+              + CASE WHEN ISNULL(#STEP9_CD#, '') = '' THEN 'FALSE' ELSE #STEP9_CD# END AS CHK_DATA
+        ]]>
+		</select>
+
+		<select id="WRK200_CHECK_USE">
+			<![CDATA[
+        SELECT COUNT(*) AS CNT
+          FROM WK_SIGN_SHEET
+          WHERE PLANT_ID = #PLANT_ID#
+		    AND TA_ID = #TA_ID#
+		    AND FACILITY_KND = #FACILITY_KND#	
+        ]]>
+		</select>
+
+		<insert id="WRK200_INSERT_MAIN_LIST">
+        <![CDATA[
+        INSERT INTO WK_FACILITY_STEP
+        (     PLANT_ID    /*사업장ID*/
+            , TA_ID    /*TA ID*/
+            , FACILITY_KND    /*설비종류*/
+            , STEP1_CD    /*1단계*/
+            , STEP2_CD    /*2단계*/
+            , STEP3_CD    /*3단계*/
+            , STEP4_CD    /*4단계*/
+            , STEP5_CD    /*5단계*/
+            , STEP6_CD    /*6단계*/
+            , STEP7_CD    /*7단계*/
+            , STEP8_CD    /*8단계*/
+            , STEP9_CD    /*9단계*/
+            , RMK          /*비고*/
+            , REG_ID      /*등록자ID*/
+            , REG_DATE    /*등록일자*/
+        ) 
+		VALUES 
+        (
+              #PLANT_ID#    /*사업장ID*/
+            , #TA_ID#    /*TA ID*/
+            , #FACILITY_KND#    /*설비종류*/
+            , #STEP1_CD#    /*1단계*/
+            , #STEP2_CD#    /*2단계*/
+            , #STEP3_CD#    /*3단계*/
+            , #STEP4_CD#    /*4단계*/
+            , #STEP5_CD#    /*5단계*/
+            , #STEP6_CD#    /*6단계*/
+            , #STEP7_CD#    /*7단계*/
+            , #STEP8_CD#    /*8단계*/
+            , #STEP9_CD#    /*9단계*/
+            , #RMK#         /*비고*/
+            , #LOGINID#     /*등록자ID*/
+            , GETDATE()           /*등록일자*/
+        )        
+        ]]>
+      </insert>
+
+      <update id="WRK200_UPDATE_MAIN_LIST">
+        <![CDATA[
+          UPDATE WK_FACILITY_STEP
+            SET STEP1_CD= #STEP1_CD#
+              , STEP2_CD= #STEP2_CD#
+              , STEP3_CD= #STEP3_CD#
+              , STEP4_CD= #STEP4_CD#
+              , STEP5_CD= #STEP5_CD#
+              , STEP6_CD= #STEP6_CD#
+              , STEP7_CD= #STEP7_CD#
+              , STEP8_CD= #STEP8_CD#
+              , STEP9_CD= #STEP9_CD#
+              , RMK = #RMK#			  
+              , MOD_ID= #LOGINID#
+              , MOD_DATE= GETDATE()
+          WHERE PLANT_ID = #PLANT_ID#
+		    AND TA_ID = #TA_ID#
+			AND FACILITY_KND = #FACILITY_KND#
+        ]]>
+      </update>
+
+	<delete id="WRK200_DELETE_MAIN_LIST">
+		<![CDATA[
+          DELETE FROM WK_FACILITY_STEP 
+		  WHERE PLANT_ID = #PLANT_ID# 
+		    AND TA_ID = #TA_ID# 
+			AND FACILITY_KND = #FACILITY_KND#
+		]]>
+      </delete>
+
+    </statements>
+</sqlMap>
